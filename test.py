@@ -11,19 +11,26 @@ def ipconfig():
         return os.system(terminal)
     return os.system(terminal)
 
-ipconfig()
-
-os.system("start /wait cmd /c multipass shell test")
-
-quit()
-
 # GUI Items
-txtResult = sg.Text('--------------')
+lefta = sg.Text('LEFT A')
+leftb = sg.Text('LEFT B')
+righta= sg.Text('RIGHTA')
+rightb = sg.Text('RIGHTB')
+bottoma = sg.Text('BOTTOMA')
+bottomb = sg.Text('BOTTOMB')
+seperatorLeftRight = sg.VerticalSeparator()
+seperatorBottom = sg.HorizontalSeparator()
+
 btnGo   = sg.Button('Go', key='-GO-')
 btnExit = sg.Exit()
 
 # GUI Layout
-layout = [[txtResult],[btnGo ],[btnExit]]
+# layout = [[txtResult],[btnGo ],[btnExit]]
+
+layout = [
+    [[lefta, righta], seperatorLeftRight, [bottoma]]
+]
+
 window = sg.Window('Test', layout)
 
 # GUI
@@ -31,11 +38,6 @@ while True:
     event, values = window.read()
 
     # Test multithreaded thingy. Disable buttons while things happen, but try display the bash outputss
-    if event == '-GO-':
-        print('PINGING')
-        results = sg.execute_get_results(sg.execute_command_subprocess(r'ping', '127.0.0.1', '-t', '3', pipe_output=True, wait=True, stdin=subprocess.PIPE))
-        txtResult.update(results[0].splitlines())
-        print(results)
     if event == sg.WIN_CLOSED or event == 'Exit':
         break
 
