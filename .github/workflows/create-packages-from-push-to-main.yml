@@ -1,0 +1,21 @@
+name: Create Packages From Push to Main
+
+on:
+  workflow_dispatch:
+  
+# Will enable this when tested properly
+#   push:
+#     branches:
+#       - main
+
+# Need to figure out this too
+# with:
+#   run-number: ${{ github.run_number }}  
+      
+jobs:
+  Build:
+    name: Build and Package
+    runs-on: windows-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
