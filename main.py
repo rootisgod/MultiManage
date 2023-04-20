@@ -33,8 +33,9 @@ def UpdateInstanceTableValues():
         instancesDataForTable = list(csvData)  # read everything else into a list of rows
 
 def UpdateInstanceTableValuesAndTable(key):
+    global instanceTableNumRows
     UpdateInstanceTableValues()
-    window[key].update(values=instancesDataForTable, num_rows=5)
+    window[key].update(values=instancesDataForTable, num_rows=instanceTableNumRows)
     # Fancy. Returns either rows count when less than 5, but settles on 5 once rows are over 5
     # tblInstances.update(values=instancesDataForTable, num_rows=min(len(instancesDataForTable), 5) )
 
@@ -46,6 +47,7 @@ def UpdatetxtStatusBoxAndRefreshWindow(key, value, window):
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/4976
 def new_window():
     global GUISize
+    global instanceTableNumRows
     labeltextwidth = 12
 
     ### Manage Instances ###
@@ -56,12 +58,12 @@ def new_window():
     txtCPUCores = sg.Text('CPU Cores', size=labeltextwidth)
     sliCPUCores = sg.Slider((1, 8), 2, 1, disable_number_display=True, tick_interval=1, orientation="h", key="-OUTPUT-CPU-", expand_x=True)
     txtRAM = sg.Text('RAM (MB)', size=labeltextwidth)
-    sliRAM = sg.Slider((0, 8192), 512, 256, tick_interval=2048, orientation="h", key="-OUTPUT-RAM-", expand_x=True)
+    sliRAM = sg.Slider((0, 8192), 1024, 256, tick_interval=2048, orientation="h", key="-OUTPUT-RAM-", expand_x=True)
     txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth)
-    sliDiskGB = sg.Slider((0, 128), 4, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
-    btnCreateInstance = sg.Button('Create Instance', key="-CREATEINSTANCE-", disabled=True, expand_x=True)
+    sliDiskGB = sg.Slider((0, 128), 8, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
+    btnCreateInstance = sg.Button('Create Instance', key="-CREATEINSTANCE-", expand_x=True)
     txtInstances = sg.Text('Instances')
-    tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=5, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE)
+    tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE)
     btnStartInstance  = sg.Button('Start Instance',   disabled=True, key='-STARTBUTTON-', expand_x=True)
     btnStopInstance   = sg.Button('Stop Instance',   disabled=True, key='-STOPBUTTON-', expand_x=True)
     btnDeleteInstance = sg.Button('Delete Instance', disabled=True, key='-DELETEBUTTON-', expand_x=True)
@@ -121,7 +123,11 @@ if results[0]:
     instanceNames = [i['name'] for i in jsonData['list']]
     print(str(len(instanceNames)) + " instances: " + ", ".join(instanceNames))
 
-# Do Any Data Initialization
+# Data Initialization
+# Vars we want to keep in a kind of 'cache'
+selectedInstanceName = ''
+instanceTableNumRows = 8
+# Multipass Info
 UpdateInstanceTableValues()
 
 ######################################################################
@@ -135,27 +141,28 @@ window = new_window()
 ######################################################################
 # Event Loop
 ######################################################################
-# Vars we want to keep in a kind of 'cache'
-selectedInstanceName = ''
-
 while True:
     event, values = window.read()
     # print(event, values)  # Useful for debugging
 
     # MAIN GUI CODE
-    if event == '-INSTANCETYPE-':
-        window['-CREATEINSTANCE-'].update(disabled=False)
     if event == '-CREATEINSTANCE-':
-        if values['-INSTANCETYPE-']:    # if something is highlighted in the list
-            itype = values['-INSTANCETYPE-']
-            iname = values['-INSTANCENAME-']
-            icpus = str(int(values['-OUTPUT-CPU-']))
-            iram  = str(int(values['-OUTPUT-RAM-'])*1024*1024)
-            idisk = str(int((values['-OUTPUT-DISK-'])*1024*1024*1024))
+        itype = values['-INSTANCETYPE-']
+        if itype == '':
+            itype = '22.04'
+        iname = (values['-INSTANCENAME-']).strip()
+        icpus = str(int(values['-OUTPUT-CPU-']))
+        iram  = str(int(values['-OUTPUT-RAM-'])*1024*1024)
+        idisk = str(int((values['-OUTPUT-DISK-'])*1024*1024*1024))
+        if iname != '':
             UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
             results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'launch', itype, '-n', iname,'-c', icpus, '-m', iram, '-d', idisk, pipe_output=True, wait=True, stdin=subprocess.PIPE))
             UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE '{iname}'", window)
-            UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
+        else:
+            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING RANDOM NAMED INSTANCE - OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
+            results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'launch', itype, '-c', icpus, '-m', iram, '-d', idisk, pipe_output=True, wait=True, stdin=subprocess.PIPE))
+            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE", window)
+        UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-INSTANCEINFO-':
         selection = values[event]
         if selection:
