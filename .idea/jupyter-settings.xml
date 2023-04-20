@@ -3,7 +3,15 @@
   <component name="JupyterPersistentConnectionParameters">
     <option name="moduleParameters">
       <map>
-        <entry key="$PROJECT_DIR$/../../python_workout/.idea/python_workout.iml">
+        <entry key="$PROJECT_DIR$/../pandas-in-action/.idea/pandas-in-action.iml">
+          <value>
+            <JupyterConnectionParameters>
+              <option name="managed" value="true" />
+              <option name="sdkHomePath" value="$USER_HOME$/.conda/envs/conda38/bin/python" />
+            </JupyterConnectionParameters>
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/python_workout/.idea/python_workout.iml">
           <value>
             <JupyterConnectionParameters>
               <option name="managed" value="true" />

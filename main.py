@@ -6,6 +6,7 @@ import json
 import csv
 import subprocess
 import os
+import sys
 import platform
 
 ######################################################################
@@ -43,6 +44,20 @@ def UpdatetxtStatusBoxAndRefreshWindow(key, value, window):
     window[key].update(value)
     window.refresh()
 
+# This function does the actual "running" of the command.  Also watches for any output. If found output is printed
+def runCommand(cmd, timeout=None, window=None):
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output = ''
+    for line in p.stdout:
+        line = line.decode(errors='replace' if (sys.version_info) < (3, 5) else 'backslashreplace').rstrip()
+        line = line.strip()
+        if line != '':
+            output += line
+            window['-OUTBOX-'].update(line)
+            window.Refresh() if window else None        # yes, a 1-line if, so shoot me
+    retval = p.wait(timeout)
+    return (retval, output)                         # also return the output just for fun
+
 # Had to create this to be able to resize the GUI. I'm not sure if this is the best way to do it, but it works.
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/4976
 def new_window():
@@ -69,9 +84,11 @@ def new_window():
     btnDeleteInstance = sg.Button('Delete Instance', disabled=True, key='-DELETEBUTTON-', expand_x=True)
     btnShellIntoInstance = sg.Button('Shell Into Instance', disabled=True, key='-SHELLINTOINSTANCEBUTTON-', expand_x=True)
     stsInstanceInfo = sg.InputText('', readonly=True, expand_x=True, disabled_readonly_background_color ='black', key='-STATUS-')
+    cbConsole = sg.CBox('Console?', enable_events=True, key='-SHOWCONSOLE-')
     txtGuiSize = sg.Text(f'GUI SIZE: {GUISize}')
     btnDecreaseGUISize = sg.Button('-', disabled=False, size=2, key='-DECREASEGUISIZE-')
     btnIncreaseGUISize = sg.Button('+', disabled=False, size=2, key='-INCREASEGUISIZE-')
+    outBox = sg.Output(size=(20,5), expand_x=True, visible=False, key='-OUTBOX-')
     # btnExit = sg.Exit()
 
     # LAYOUT
@@ -97,7 +114,8 @@ def new_window():
         ### STATUS ###
         [
             [sg.HorizontalSeparator()],
-            [stsInstanceInfo, txtGuiSize, btnDecreaseGUISize, btnIncreaseGUISize]
+            [stsInstanceInfo, cbConsole, txtGuiSize, btnDecreaseGUISize, btnIncreaseGUISize],
+            [outBox]
         ],
     ]
 
@@ -154,13 +172,15 @@ while True:
         icpus = str(int(values['-OUTPUT-CPU-']))
         iram  = str(int(values['-OUTPUT-RAM-'])*1024*1024)
         idisk = str(int((values['-OUTPUT-DISK-'])*1024*1024*1024))
+        commandline = (f'multipass launch {itype} -vvv -c {icpus} -m {iram} -d {idisk}')
         if iname != '':
+            commandline = commandline + f' -n {iname}'
             UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
-            results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'launch', itype, '-n', iname,'-c', icpus, '-m', iram, '-d', idisk, pipe_output=True, wait=True, stdin=subprocess.PIPE))
+            runCommand(cmd=(commandline), window=window)
             UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE '{iname}'", window)
         else:
             UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING RANDOM NAMED INSTANCE - OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
-            results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'launch', itype, '-c', icpus, '-m', iram, '-d', idisk, pipe_output=True, wait=True, stdin=subprocess.PIPE))
+            runCommand(cmd=(commandline), window=window)
             UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-INSTANCEINFO-':
@@ -185,12 +205,16 @@ while True:
     # Annoyingly, the txtStatus box doesn't update before it runs the action. No idea why...
     if event == '-STARTBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTING INSTANCE: {selectedInstanceName}", window)
-        sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'start', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
+        # sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'start', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
+        commandline = (f'multipass start {selectedInstanceName} -vv')
+        runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTED INSTANCE: {selectedInstanceName}", window)
+        UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-STOPBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPING INSTANCE: {selectedInstanceName}", window)
-        window.refresh()
-        sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'stop', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
+        # sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'stop', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
+        commandline = (f'multipass stop {selectedInstanceName} -vv')
+        runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-DELETEBUTTON-':
@@ -212,6 +236,15 @@ while True:
             sg.popup("Sorry, not supported on this OS: " + platform.system() + "\n\nOnly supported on\n- Windows\n- Linux\n- Mac")
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"SHELLED INTO INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
+    if event == '-SHOWCONSOLE-':
+        if values["-SHOWCONSOLE-"] == False:
+            window['-OUTBOX-'].update(visible=False)
+            window['-OUTBOX-'].hide_row()
+            window.refresh()
+        else:
+            window['-OUTBOX-'].update(visible=True)
+            window['-OUTBOX-'].unhide_row()
+            window.refresh()
     if event == '-DECREASEGUISIZE-':
         GUISize -= 2
         sg.set_options(font=f'Default {GUISize}')
