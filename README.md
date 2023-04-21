@@ -21,23 +21,50 @@ Full Program Examples: https://github.com/PySimpleGUI/PySimpleGUI/tree/master/De
 
 Reference: https://www.pysimplegui.org/en/stable/
 
-## Program Design
-Options
- - Create New VM
-   - Image (20.04, 22.04 etc)   (may need a refresh button to do a 'multipass find')
-   - CPUs 1,2,3,4,5,6,7,8
-   - Memory 256,512,1024,2048,4096,8192
-   - Disk (GB)
+# System Setup Guide
 
-# Linux Mint Setup
+## Windows 2022
 
-## Python 
-```bash
-apt install python3 python3-pip python3-tk
-pip install pysimplegui 
+Install chocolatey
+
+## Python
+
+### Program Dependencies
+
+Install chocolatey
+
+```powershell
+choco install python3 -y
+python.exe -m pip install --upgrade pip
+pip install pysimplegui pyinstaller
 ```
 
-## Multipass
+### Pyinstaller
+
+```powershell
+pip install pyinstaller
+```
+
+# Build
+
+Run this and then zip the contents
+
+```powershell
+pyinstaller main.py
+.\dist\main\main.exe
+```
+
+## Linux
+
+### Python 
+
+```bash
+apt install python3 python3-pip python3-tk
+pip install pysimplegui pyinstaller
+python3 -m PyInstaller main.py
+```
+
+### Multipass
 ```bash
 sudo mv /etc/apt/preferences.d/nosnap.pref ~/Documents/nosnap.backup
 sudo apt update
