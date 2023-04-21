@@ -36,6 +36,7 @@ Install chocolatey
 ```powershell
 choco install python3 -y
 python.exe -m pip install --upgrade pip
+pip install pipenv
 pip install pysimplegui pyinstaller
 ```
 
@@ -60,6 +61,7 @@ pyinstaller main.py
 
 ```bash
 apt install python3 python3-pip python3-tk
+pip install pipenv
 pip install pysimplegui pyinstaller
 python3 -m PyInstaller main.py
 ```
