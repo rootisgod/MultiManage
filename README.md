@@ -51,7 +51,7 @@ pip install pyinstaller
 Run this and then zip the contents
 
 ```powershell
-pyinstaller main.py
+pyinstaller multimanage.py
 .\dist\main\main.exe
 ```
 
@@ -63,7 +63,7 @@ pyinstaller main.py
 apt install python3 python3-pip python3-tk
 pip install pipenv
 pip install pysimplegui pyinstaller
-python3 -m PyInstaller main.py
+python3 -m PyInstaller multimanage.py
 ```
 
 ### Multipass
