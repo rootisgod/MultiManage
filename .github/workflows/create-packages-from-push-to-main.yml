@@ -1,4 +1,5 @@
 # https://data-dive.com/multi-os-deployment-in-cloud-using-pyinstaller-and-github-actions
+# https://github.com/actions/upload-release-asset
 
 name: Create Packages From Push to Main
 
@@ -22,17 +23,27 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  tag_name: ${{ github.ref }}-${{ github.run_number }}
-                  release_name: Release-${{ github.ref }}-${{ github.run_number }}
+                  tag_name: ${{ github.ref }}
+                  release_name: Release ${{ github.ref }}
                   draft: false
                   prerelease: false
-            - name: Output Release URL File
-              run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
-            - name: Save Release URL File for publish
-              uses: actions/upload-artifact@v1
-              with:
-                  name: release_url
-                  path: release_url.txt
+            # - name: Create Release
+            #   id: create_release
+            #   uses: actions/create-release@v1
+            #   env:
+            #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            #   with:
+            #       tag_name: ${{ github.ref }}-${{ github.run_number }}
+            #       release_name: Release-${{ github.ref }}-${{ github.run_number }}
+            #       draft: false
+            #       prerelease: false
+            # - name: Output Release URL File
+            #   run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
+            # - name: Save Release URL File for publish
+            #   uses: actions/upload-artifact@v1
+            #   with:
+            #       name: release_url
+            #       path: release_url.txt
 
     build:
         name: Build packages
@@ -64,36 +75,48 @@ jobs:
             # =========================================================
             # Get a release URL (?)
             # =========================================================
-            - name: Load Release URL File from release job
-              uses: actions/download-artifact@v1
-              with:
-                  name: release_url
+            # - name: Load Release URL File from release job
+            #   uses: actions/download-artifact@v1
+            #   with:
+            #       name: release_url
 
             # =========================================================
             # Figure out URL
             # =========================================================
-            - name: Get Release File Name & Upload URL
-              id: get_release_info
-              shell: bash
-              run: |
-                  value=`cat release_url/release_url.txt`
-                  echo ::set-output name=upload_url::$value
+            # - name: Get Release File Name & Upload URL
+            #   id: get_release_info
+            #   shell: bash
+            #   run: |
+            #       value=`cat release_url/release_url.txt`
+            #       echo ::set-output name=upload_url::$value
 
-            - name: Show URL
-              id: show_release_url
-              shell: bash
-              run: cat release_url/release_url.txt
+            # - name: Show URL
+            #   id: show_release_url
+            #   shell: bash
+            #   run: cat release_url/release_url.txt
 
             # =========================================================
             # Upload to Github
             # =========================================================
+            # - name: Upload Release Asset
+            #   id: upload-release-asset
+            #   uses: actions/upload-release-asset@v1
+            #   env:
+            #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            #   with:
+            #       upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+            #       asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
+            #       asset_name: ${{ matrix.OUT_FILE_NAME}}
+            #       asset_content_type: ${{ matrix.ASSET_MIME}}
+
+            # https://github.com/actions/create-release
             - name: Upload Release Asset
               id: upload-release-asset
               uses: actions/upload-release-asset@v1
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+                  upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
                   asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
                   asset_name: ${{ matrix.OUT_FILE_NAME}}
                   asset_content_type: ${{ matrix.ASSET_MIME}}
