@@ -44,7 +44,7 @@ jobs:
                 include:
                     - os: windows-latest
                       TARGET: windows
-                      CMD_BUILD: pyinstaller -n multimanage multimanage.py
+                      CMD_BUILD: pyinstaller -F -w -n multimanage multimanage.py
                       OUT_FILE_NAME: multimanage.exe
                       ASSET_MIME: application/vnd.microsoft.portable-executable
         steps:
@@ -94,6 +94,6 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ steps.get_release_info.outputs.upload_url }}
-                  asset_path: ./dist/multimanage/${{ matrix.OUT_FILE_NAME}}
+                  asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
                   asset_name: ${{ matrix.OUT_FILE_NAME}}
                   asset_content_type: ${{ matrix.ASSET_MIME}}
