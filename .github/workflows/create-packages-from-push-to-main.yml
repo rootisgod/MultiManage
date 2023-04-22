@@ -94,11 +94,17 @@ jobs:
       - name: Show some debug info
         shell: bash
         run: |
+          echo '------------------------------------------------------------'
           ls -lah
+          echo '------------------------------------------------------------
           ls -lah ./dist/
+          echo '------------------------------------------------------------
           ls -lah ./dist/multimanage/
+          echo '------------------------------------------------------------
           echo ${{ steps.get_release_info.outputs.upload_url }}
+          echo '------------------------------------------------------------
           cat release_url/release_url.txt
+          echo '------------------------------------------------------------
 
       - name: Upload Release Asset
         id: upload-release-asset
