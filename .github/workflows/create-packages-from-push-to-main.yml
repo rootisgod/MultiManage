@@ -42,14 +42,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest
-            TARGET: macos
-            CMD_BUILD: >
-              pyinstaller -n multimanage multimanage.py &&
-              cd dist/ &&
-              zip -r9 multimanage multimanage.app/
-            OUT_FILE_NAME: multimanage.zip
-            ASSET_MIME: application/zip
+          #- os: macos-latest
+          # TARGET: macos
+          #  CMD_BUILD: >
+          #    pyinstaller -n multimanage multimanage.py &&
+          #    cd dist/ &&
+          #    zip -r9 multimanage multimanage.app/
+          #  OUT_FILE_NAME: multimanage.zip
+          #  ASSET_MIME: application/zip
           - os: windows-latest
             TARGET: windows
             CMD_BUILD: pyinstaller -n multimanage multimanage.py
