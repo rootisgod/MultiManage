@@ -43,6 +43,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - os: windows-latest
+            TARGET: windows
+            CMD_BUILD: pyinstaller -n multimanage multimanage.py
+            OUT_FILE_NAME: multimanage.exe
+            ASSET_MIME: application/vnd.microsoft.portable-executable
+          ### To test mac build
           #- os: macos-latest
           # TARGET: macos
           #  CMD_BUILD: >
@@ -51,23 +57,15 @@ jobs:
           #    zip -r9 multimanage multimanage.app/
           #  OUT_FILE_NAME: multimanage.zip
           #  ASSET_MIME: application/zip
-          - os: windows-latest
-            runs-on: self-hosted
-            container:
-              image: mcr.microsoft.com/windows/servercore:ltsc2019
-            TARGET: windows
-            CMD_BUILD: pyinstaller -n multimanage multimanage.py
-            OUT_FILE_NAME: multimanage.exe
-            ASSET_MIME: application/vnd.microsoft.portable-executable
-#            To Test Linux Build
-#          - os: ubuntu-latest
-#            TARGET: linux
-#            CMD_BUILD: >
-#              pyinstaller -n multimanage multimanage.py &&
-#              cd dist/ &&
-#              zip -r9 multimanage multimanage.zip
-#            OUT_FILE_NAME: multimanage.exe
-#            ASSET_MIME: application/vnd.microsoft.portable-executable
+          ###  To Test Linux Build
+          # - os: ubuntu-latest
+          #   TARGET: linux
+          #   CMD_BUILD: >
+          #     pyinstaller -n multimanage multimanage.py &&
+          #     cd dist/ &&
+          #     zip -r9 multimanage multimanage.zip
+          #   OUT_FILE_NAME: multimanage.exe
+          #   ASSET_MIME: application/vnd.microsoft.portable-executable
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
