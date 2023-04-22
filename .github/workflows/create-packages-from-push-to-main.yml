@@ -9,6 +9,7 @@ on:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
     branches:
       - main
+      - MM8-Create-Github-Actions-to-Build-Installer
 
 jobs:
 
@@ -51,6 +52,9 @@ jobs:
           #  OUT_FILE_NAME: multimanage.zip
           #  ASSET_MIME: application/zip
           - os: windows-latest
+            runs-on: self-hosted
+            container:
+              image: mcr.microsoft.com/windows/servercore:ltsc2019
             TARGET: windows
             CMD_BUILD: pyinstaller -n multimanage multimanage.py
             OUT_FILE_NAME: multimanage.exe
