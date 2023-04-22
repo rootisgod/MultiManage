@@ -1,0 +1,2 @@
+pysimplegui~=4.60.4
+setuptools~=65.6.3
