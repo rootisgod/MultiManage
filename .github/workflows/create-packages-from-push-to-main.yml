@@ -16,6 +16,8 @@ jobs:
     createrelease:
         name: Create Release
         runs-on: [ubuntu-latest]
+        outputs:
+            upload_url: ${{ steps.upload_url.outputs.upload_url }}
         steps:
             - name: Create Release
               id: create_release
@@ -27,23 +29,27 @@ jobs:
                   release_name: Release ${{ github.ref }}
                   draft: false
                   prerelease: false
-            # - name: Create Release
-            #   id: create_release
-            #   uses: actions/create-release@v1
-            #   env:
-            #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            #   with:
-            #       tag_name: ${{ github.ref }}-${{ github.run_number }}
-            #       release_name: Release-${{ github.ref }}-${{ github.run_number }}
-            #       draft: false
-            #       prerelease: false
-            # - name: Output Release URL File
-            #   run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
-            # - name: Save Release URL File for publish
-            #   uses: actions/upload-artifact@v1
-            #   with:
-            #       name: release_url
-            #       path: release_url.txt
+            - name: Get Release URL
+              id: upload_url
+              run:
+                  echo "url=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_OUTPUT
+                  # - name: Create Release
+                  #   id: create_release
+                  #   uses: actions/create-release@v1
+                  #   env:
+                  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  #   with:
+                  #       tag_name: ${{ github.ref }}-${{ github.run_number }}
+                  #       release_name: Release-${{ github.ref }}-${{ github.run_number }}
+                  #       draft: false
+                  #       prerelease: false
+                  # - name: Output Release URL File
+                  #   run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
+                  # - name: Save Release URL File for publish
+                  #   uses: actions/upload-artifact@v1
+                  #   with:
+                  #       name: release_url
+                  #       path: release_url.txt
 
     build:
         name: Build packages
@@ -116,7 +122,8 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  upload_url: ${{ createrelease.steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+                  # upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+                  upload_url: ${{ needs.createrelease.outputs.upload_url }}
                   asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
                   asset_name: ${{ matrix.OUT_FILE_NAME}}
                   asset_content_type: ${{ matrix.ASSET_MIME}}
