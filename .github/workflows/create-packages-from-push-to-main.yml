@@ -88,7 +88,8 @@ jobs:
         shell: bash
         # https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/
         run: |
-          echo ::set-output name=upload_url::$value
+          value=`cat release_url/release_url.txt`
+          echo ::set-output name=upload_url::$value  
 
       - name: Show some debug info
         shell: bash
