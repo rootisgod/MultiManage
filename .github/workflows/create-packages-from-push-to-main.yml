@@ -10,7 +10,7 @@ on:
         #     - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
         branches:
             - main
-            
+
 jobs:
     createrelease:
         name: Create Release
@@ -22,10 +22,10 @@ jobs:
               id: create_release
               uses: actions/create-release@v1
               env:
-                  GITHUB_TOKEN: v1.${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   tag_name: v1.${{ github.run_number }}
-                  release_name: v${{ github.run_number }}
+                  release_name: v1.${{ github.run_number }}
                   draft: false
                   prerelease: false
             - name: Get Release URL
