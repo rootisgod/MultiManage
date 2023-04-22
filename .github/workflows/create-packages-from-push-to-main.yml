@@ -64,11 +64,11 @@ jobs:
 #            OUT_FILE_NAME: multimanage.exe
 #            ASSET_MIME: application/vnd.microsoft.portable-executable
     steps:
-      - uses: actions/checkout@v1
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: '3.11'
       - name: Install dependencies using pip. Pipenv is too fancy for now...
         run: |
           python -m pip install --upgrade pip
