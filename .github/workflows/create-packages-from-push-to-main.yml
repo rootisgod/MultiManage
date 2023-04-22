@@ -25,14 +25,14 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  tag_name: ${{ github.ref }}-${{ github.run_number }}  
-                  release_name: Release-${{ github.ref }}-${{ github.run_number }}  
+                  tag_name: ${{ github.ref }}-${{ github.run_number }}
+                  release_name: Release-${{ github.ref }}-${{ github.run_number }}
                   draft: false
                   prerelease: false
             - name: Get Release URL
               id: upload_url
               run:
-                  echo "url=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_OUTPUT
+                  echo "upload_url=${{ steps.create_release.outputs.upload_url }}" >> $GITHUB_OUTPUT
                   # - name: Create Release
                   #   id: create_release
                   #   uses: actions/create-release@v1
@@ -122,6 +122,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
+                  # - run: echo ${{needs.job1.outputs.output1}} ${{needs.job1.outputs.output2}}
                   # upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
                   upload_url: ${{ needs.createrelease.outputs.upload_url }}
                   asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
