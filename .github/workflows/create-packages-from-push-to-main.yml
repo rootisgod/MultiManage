@@ -96,6 +96,7 @@ jobs:
         run: |
           ls -lah
           ls -lah ./dist/
+          ls -lah ./dist/multimanage/
           echo ${{ steps.get_release_info.outputs.upload_url }}
           cat release_url/release_url.txt
 
