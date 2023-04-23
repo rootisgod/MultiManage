@@ -61,7 +61,6 @@ jobs:
                   pip install -r requirements.txt
             - name: Build with pyinstaller for ${{matrix.TARGET}}
               run: ${{matrix.CMD_BUILD}}
-
             - name: Upload Release Asset
               id: upload-release-asset
               uses: actions/upload-release-asset@v1
@@ -69,6 +68,17 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ needs.createrelease.outputs.upload_url }}
-                  asset_path: ./Output/${{ matrix.OUT_FILE_NAME}}
+                  asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
                   asset_name: ${{ matrix.OUT_FILE_NAME}}
                   asset_content_type: ${{ matrix.ASSET_MIME}}
+            - if: matrix.os == 'windows-latest'
+              name: Upload Windows Installer Exe
+              id: upload-windows-installer-release-asset
+              uses: actions/upload-release-asset@v1
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                upload_url: ${{ needs.createrelease.outputs.upload_url }}
+                asset_path: ./Output/${{ matrix.OUT_FILE_NAME}}
+                asset_name: Installer-${{ matrix.OUT_FILE_NAME}}
+                asset_content_type: ${{ matrix.ASSET_MIME}}
