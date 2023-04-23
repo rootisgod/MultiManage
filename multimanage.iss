@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "MultiManage"
-#define MyAppVersion "1.50"
+#define MyAppVersion "1.0"
 #define MyAppPublisher "rootisgod"
 #define MyAppURL "https://github.com/rootisgod/MultiManage"
 #define MyAppExeName "MultiManage.exe"
