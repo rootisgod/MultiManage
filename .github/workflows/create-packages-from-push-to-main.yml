@@ -48,7 +48,7 @@ jobs:
                         Start-BitsTransfer -Source https://jrsoftware.org/download.php/is.exe -Destination is.exe
                         Start-Process -FilePath "is.exe" -Wait -ArgumentList "/silent /norestart"
                         Test-Path 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
-                        & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' multimanage.iss
+                        .'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' multimanage.iss
                       OUT_FILE_NAME: multimanage.exe
                       ASSET_MIME: application/vnd.microsoft.portable-executable
         steps:
