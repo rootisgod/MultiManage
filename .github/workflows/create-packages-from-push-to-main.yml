@@ -43,7 +43,12 @@ jobs:
                 include:
                     - os: windows-latest
                       TARGET: windows
-                      CMD_BUILD: pyinstaller -F -w -n multimanage multimanage.py
+                      CMD_BUILD: >
+                        pyinstaller -F -w -n multimanage multimanage.py
+                        Start-BitsTransfer -Source https://jrsoftware.org/download.php/is.exe -Destination is.exe
+                        Start-Process -FilePath "is.exe" -Wait -ArgumentList "/silent /norestart"
+                        Test-Path 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+                        & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' multimanage.iss
                       OUT_FILE_NAME: multimanage.exe
                       ASSET_MIME: application/vnd.microsoft.portable-executable
         steps:
@@ -64,6 +69,6 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ needs.createrelease.outputs.upload_url }}
-                  asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
+                  asset_path: ./Output/${{ matrix.OUT_FILE_NAME}}
                   asset_name: ${{ matrix.OUT_FILE_NAME}}
                   asset_content_type: ${{ matrix.ASSET_MIME}}
