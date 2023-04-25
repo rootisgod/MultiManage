@@ -83,6 +83,7 @@ def new_window():
     btnStopInstance   = sg.Button('Stop Instance',   disabled=True, key='-STOPBUTTON-', expand_x=True)
     btnDeleteInstance = sg.Button('Delete Instance', disabled=True, key='-DELETEBUTTON-', expand_x=True)
     btnShellIntoInstance = sg.Button('Shell Into Instance', disabled=True, key='-SHELLINTOINSTANCEBUTTON-', expand_x=True)
+    btnRefreshTable = sg.Button('Refresh Table', disabled=False, key='-REFRESHTABLEBUTTON-', expand_x=True)
     stsInstanceInfo = sg.InputText('', readonly=True, expand_x=True, disabled_readonly_background_color ='black', key='-STATUS-')
     cbConsole = sg.CBox('Console?', enable_events=True, key='-SHOWCONSOLE-')
     txtGuiSize = sg.Text(f'GUI SIZE: {GUISize}')
@@ -109,7 +110,8 @@ def new_window():
         [
             [txtInstances],
             [tblInstances],
-            [btnStartInstance, btnStopInstance, btnDeleteInstance, btnShellIntoInstance],
+            [[btnStartInstance, btnStopInstance, btnDeleteInstance, btnShellIntoInstance],
+             [btnRefreshTable]],
         ],
         ### STATUS ###
         [
@@ -222,6 +224,8 @@ while True:
         sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'delete', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
         sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'purge', pipe_output=True, wait=True, stdin=subprocess.PIPE))
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETED INSTANCE: {selectedInstanceName}", window)
+        UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
+    if event == '-REFRESHTABLEBUTTON-':
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-SHELLINTOINSTANCEBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"SHELLING INTO INSTANCE: {selectedInstanceName}", window)
