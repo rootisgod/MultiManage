@@ -9,6 +9,10 @@ import os
 import sys
 import platform
 
+
+
+icon_start_button = b'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAUElEQVQ4y+3SMRIAEQxA0dyH83CcuPcWX6WSZGW0fssbJoi8DgNwVhRNAAofGCQ4oZnEBw6JgAh9IwsQp/cgfaXD7eFYe2qs1PzDDfNrvH6ayimqkXYyrPoAAAAASUVORK5CYII='
+
 ######################################################################
 # Global Functions and Data
 ######################################################################
@@ -76,14 +80,14 @@ def new_window():
     sliRAM = sg.Slider((0, 8192), 1024, 256, tick_interval=2048, orientation="h", key="-OUTPUT-RAM-", expand_x=True)
     txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth)
     sliDiskGB = sg.Slider((0, 128), 8, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
-    btnCreateInstance = sg.Button('Create Instance', key="-CREATEINSTANCE-", expand_x=True)
+    btnCreateInstance = sg.Button('⚡ Create Instance', key="-CREATEINSTANCE-", expand_x=True)
     txtInstances = sg.Text('Instances')
     tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE)
-    btnStartInstance  = sg.Button('Start Instance',   disabled=True, key='-STARTBUTTON-', expand_x=True)
-    btnStopInstance   = sg.Button('Stop Instance',   disabled=True, key='-STOPBUTTON-', expand_x=True)
-    btnDeleteInstance = sg.Button('Delete Instance', disabled=True, key='-DELETEBUTTON-', expand_x=True)
-    btnShellIntoInstance = sg.Button('Shell Into Instance', disabled=True, key='-SHELLINTOINSTANCEBUTTON-', expand_x=True)
-    btnRefreshTable = sg.Button('Refresh Table', disabled=False, key='-REFRESHTABLEBUTTON-', expand_x=True)
+    btnStartInstance  = sg.Button('⏵ Start Instance',   disabled=True, key='-STARTBUTTON-', expand_x=True)
+    btnStopInstance   = sg.Button('⏹ Stop Instance',   disabled=True, key='-STOPBUTTON-', expand_x=True)
+    btnDeleteInstance = sg.Button('⨉ Delete Instance', disabled=True, key='-DELETEBUTTON-', expand_x=True)
+    btnShellIntoInstance = sg.Button('$ Shell Into Instance', disabled=True, key='-SHELLINTOINSTANCEBUTTON-', expand_x=True)
+    btnRefreshTable = sg.Button('↻ Refresh Table', disabled=False, key='-REFRESHTABLEBUTTON-', expand_x=True)
     stsInstanceInfo = sg.InputText('', readonly=True, expand_x=True, disabled_readonly_background_color ='black', key='-STATUS-')
     cbConsole = sg.CBox('Console?', enable_events=True, key='-SHOWCONSOLE-')
     txtGuiSize = sg.Text(f'GUI SIZE: {GUISize}')
