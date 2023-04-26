@@ -48,8 +48,14 @@ def UpdatetxtStatusBoxAndRefreshWindow(key, value, window):
     window[key].update(value)
     window.refresh()
 
-# This function does the actual "running" of the command.  Also watches for any output. If found output is printed
 def runCommand(cmd, timeout=None, window=None):
+    if values["-SHOWCONSOLE-"]:
+        runCommandInPopupWindow(cmd=cmd)
+    elif not values["-SHOWCONSOLE-"]:
+        runCommandSilently(cmd=cmd, window=window)
+
+# This function does the actual "running" of the command.  Also watches for any output. If found output is printed
+def runCommandSilently(cmd, timeout=None, window=None):
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = ''
     for line in p.stdout:
@@ -61,6 +67,28 @@ def runCommand(cmd, timeout=None, window=None):
             window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     retval = p.wait(timeout)
     return (retval, output)                         # also return the output just for fun
+
+# This function does the actual "running" of the command in a popup window
+def runCommandInPopupWindow(cmd, timeout=None):
+    popup_layout = [[sg.Output(size=(60,4), key='-OUT-')]]
+    popup_window = sg.Window('Console', popup_layout, finalize=True)
+    print('==================================================')
+    print(f'    COMMAND: "{cmd}"')
+    print('==================================================')
+    popup_window.Refresh() if window else None        # yes, a 1-line if, so shoot me
+    # f'GUI SIZE: {GUISize}'
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    output = ''
+    for line in p.stdout:
+        line = line.decode(errors='replace' if (sys.version_info) < (3, 5) else 'backslashreplace').rstrip()
+        line = line.strip()
+        output += line
+        print(line)
+        popup_window['-OUT-'].update(line)
+        popup_window.Refresh() if window else None        # yes, a 1-line if, so shoot me
+    popup_window.close()
+    retval = p.wait(timeout)
+    # return (retval, output)                         # also return the output just for fun
 
 # Had to create this to be able to resize the GUI. I'm not sure if this is the best way to do it, but it works.
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/4976
@@ -89,7 +117,7 @@ def new_window():
     btnShellIntoInstance = sg.Button('$ Shell Into Instance', disabled=True, key='-SHELLINTOINSTANCEBUTTON-', expand_x=True)
     btnRefreshTable = sg.Button('↻ Refresh Table', disabled=False, key='-REFRESHTABLEBUTTON-', expand_x=True)
     stsInstanceInfo = sg.InputText('', readonly=True, expand_x=True, disabled_readonly_background_color ='black', key='-STATUS-')
-    cbConsole = sg.CBox('Console?', enable_events=True, key='-SHOWCONSOLE-')
+    cbConsole = sg.CBox('Console?', default=False, enable_events=True, key='-SHOWCONSOLE-')
     txtGuiSize = sg.Text(f'GUI SIZE: {GUISize}')
     btnDecreaseGUISize = sg.Button('-', disabled=False, size=2, key='-DECREASEGUISIZE-')
     btnIncreaseGUISize = sg.Button('+', disabled=False, size=2, key='-INCREASEGUISIZE-')
@@ -212,15 +240,17 @@ while True:
     if event == '-STARTBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTING INSTANCE: {selectedInstanceName}", window)
         # sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'start', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
-        commandline = (f'multipass start {selectedInstanceName} -vv')
+        commandline = (f'multipass start {selectedInstanceName} -vvv')
         runCommand(cmd=(commandline), window=window)
+        # runCommandInPopupWindow(cmd=commandline)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-STOPBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPING INSTANCE: {selectedInstanceName}", window)
         # sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'stop', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
-        commandline = (f'multipass stop {selectedInstanceName} -vv')
+        commandline = (f'multipass stop {selectedInstanceName} -vvv')
         runCommand(cmd=(commandline), window=window)
+        # runCommandInPopupWindow(cmd=commandline)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-DELETEBUTTON-':
@@ -244,15 +274,15 @@ while True:
             sg.popup("Sorry, not supported on this OS: " + platform.system() + "\n\nOnly supported on\n- Windows\n- Linux\n- Mac")
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"SHELLED INTO INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
-    if event == '-SHOWCONSOLE-':
-        if values["-SHOWCONSOLE-"] == False:
-            window['-OUTBOX-'].update(visible=False)
-            window['-OUTBOX-'].hide_row()
-            window.refresh()
-        else:
-            window['-OUTBOX-'].update(visible=True)
-            window['-OUTBOX-'].unhide_row()
-            window.refresh()
+    # if event == '-SHOWCONSOLE-':
+        # if values["-SHOWCONSOLE-"] == False:
+        #     window['-OUTBOX-'].update(visible=False)
+        #     # window['-OUTBOX-'].hide_row()
+        #     # window.refresh()
+        # else:
+        #     # window['-OUTBOX-'].update(visible=True)
+        #     # window['-OUTBOX-'].unhide_row()
+        #     # window.refresh()
     if event == '-DECREASEGUISIZE-':
         GUISize -= 2
         sg.set_options(font=f'Default {GUISize}')
