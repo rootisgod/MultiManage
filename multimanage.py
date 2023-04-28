@@ -11,6 +11,10 @@ import platform
 import yaml
 import textwrap
 
+
+
+icon_start_button = b'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAUElEQVQ4y+3SMRIAEQxA0dyH83CcuPcWX6WSZGW0fssbJoi8DgNwVhRNAAofGCQ4oZnEBw6JgAh9IwsQp/cgfaXD7eFYe2qs1PzDDfNrvH6ayimqkXYyrPoAAAAASUVORK5CYII='
+
 ######################################################################
 # Global Functions and Data
 ######################################################################
@@ -74,6 +78,7 @@ def loadYAMLCloudInitFile(filePathAndName='./cloud-init/quick.yaml'):
     with open(filePathAndName, "rt", encoding='utf-8') as file:
         cloud_init_yaml= file.read()
     return cloud_init_yaml
+
 
 # This function does the actual "running" of the command in a popup window
 def runCommandInPopupWindow(cmd, timeout=None):
@@ -265,12 +270,14 @@ while True:
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTING INSTANCE: {selectedInstanceName}", window)
         commandline = (f'multipass start {selectedInstanceName} -vvv')
         runCommand(cmd=(commandline), window=window)
+        # runCommandInPopupWindow(cmd=commandline)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-STOPBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPING INSTANCE: {selectedInstanceName}", window)
         commandline = (f'multipass stop {selectedInstanceName} -vvv')
         runCommand(cmd=(commandline), window=window)
+        # runCommandInPopupWindow(cmd=commandline)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-DELETEBUTTON-':
