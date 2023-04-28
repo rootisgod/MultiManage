@@ -1,0 +1,5 @@
+#cloud-config
+package_upgrade: false
+packages:
+  - net-tools
+  - nano

@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 pysimplegui = "~=4.60.4"
+coverage = "*"
+pyyaml = "*"
 
 [dev-packages]
 

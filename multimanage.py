@@ -8,6 +8,8 @@ import subprocess
 import os
 import sys
 import platform
+import yaml
+import textwrap
 
 
 
@@ -68,6 +70,16 @@ def runCommandSilently(cmd, timeout=None, window=None):
     retval = p.wait(timeout)
     return (retval, output)                         # also return the output just for fun
 
+def loadYAMLCloudInitFile(filePathAndName='./cloud-init/quick.yaml'):
+    # https://stackoverflow.com/questions/67065794/how-to-open-a-file-upon-button-click-pysimplegui
+    cloud_init_yaml = ''
+    with open(filePathAndName, 'r') as file:
+        cloud_init_yaml = yaml.safe_load(file)
+    with open(filePathAndName, "rt", encoding='utf-8') as file:
+        cloud_init_yaml= file.read()
+    return cloud_init_yaml
+
+
 # This function does the actual "running" of the command in a popup window
 def runCommandInPopupWindow(cmd, timeout=None):
     popup_layout = [[sg.Output(size=(60,4), key='-OUT-')]]
@@ -108,6 +120,11 @@ def new_window():
     sliRAM = sg.Slider((0, 8192), 1024, 256, tick_interval=2048, orientation="h", key="-OUTPUT-RAM-", expand_x=True)
     txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth)
     sliDiskGB = sg.Slider((0, 128), 8, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
+    cbUseCloudInit = sg.CBox(textwrap.fill('Use a Cloud Init File?', labeltextwidth), default=False, enable_events=True, key='-USECLOUDINIT-')
+    txtCloudInitFile = sg.Text(textwrap.fill('Load File?', labeltextwidth), size=labeltextwidth, key='-CLOUDINITFILEPATH-')
+    inpCloudInitFile = sg.Input(expand_x=True, key='-CLOUDINITINPUT-')
+    btnLoadCloudInitFile = sg.Button('Browse', key='-LOADCLOUDINITFILE-', expand_x=True)
+    mulCloudInitYAML = sg.Multiline(size=(50,8),  expand_x=True, key='-CLOUDINITYAML-')
     btnCreateInstance = sg.Button('⚡ Create Instance', key="-CREATEINSTANCE-", expand_x=True)
     txtInstances = sg.Text('Instances')
     tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE)
@@ -117,7 +134,7 @@ def new_window():
     btnShellIntoInstance = sg.Button('$ Shell Into Instance', disabled=True, key='-SHELLINTOINSTANCEBUTTON-', expand_x=True)
     btnRefreshTable = sg.Button('↻ Refresh Table', disabled=False, key='-REFRESHTABLEBUTTON-', expand_x=True)
     stsInstanceInfo = sg.InputText('', readonly=True, expand_x=True, disabled_readonly_background_color ='black', key='-STATUS-')
-    cbConsole = sg.CBox('Console?', default=False, enable_events=True, key='-SHOWCONSOLE-')
+    cbConsole = sg.CBox('Console?', default=True, enable_events=True, key='-SHOWCONSOLE-')
     txtGuiSize = sg.Text(f'GUI SIZE: {GUISize}')
     btnDecreaseGUISize = sg.Button('-', disabled=False, size=2, key='-DECREASEGUISIZE-')
     btnIncreaseGUISize = sg.Button('+', disabled=False, size=2, key='-INCREASEGUISIZE-')
@@ -134,6 +151,8 @@ def new_window():
                 [txtCPUCores, sliCPUCores],
                 [txtRAM, sliRAM],
                 [txtDiskGB, sliDiskGB],
+                [txtCloudInitFile, inpCloudInitFile, btnLoadCloudInitFile],
+                [cbUseCloudInit, mulCloudInitYAML],
                 [btnCreateInstance],
             ],
             [sg.HorizontalSeparator()],
@@ -143,7 +162,7 @@ def new_window():
             [txtInstances],
             [tblInstances],
             [[btnStartInstance, btnStopInstance, btnDeleteInstance, btnShellIntoInstance],
-             [btnRefreshTable]],
+            [btnRefreshTable]],
         ],
         ### STATUS ###
         [
@@ -179,7 +198,8 @@ if results[0]:
 # Vars we want to keep in a kind of 'cache'
 selectedInstanceName = ''
 instanceTableNumRows = 8
-# Multipass Info
+local_cloud_init_yaml_filename = 'cloud-init.yaml'
+# Load Multipass Info
 UpdateInstanceTableValues()
 
 ######################################################################
@@ -195,7 +215,7 @@ window = new_window()
 ######################################################################
 while True:
     event, values = window.read()
-    # print(event, values)  # Useful for debugging
+    print(event, values)  # Useful for debugging
 
     # MAIN GUI CODE
     if event == '-CREATEINSTANCE-':
@@ -207,6 +227,11 @@ while True:
         iram  = str(int(values['-OUTPUT-RAM-'])*1024*1024)
         idisk = str(int((values['-OUTPUT-DISK-'])*1024*1024*1024))
         commandline = (f'multipass launch {itype} -vvv -c {icpus} -m {iram} -d {idisk}')
+        if values["-USECLOUDINIT-"] == True:
+            f = open(f"${local_cloud_init_yaml_filename}", "w")
+            f.write(values["-CLOUDINITYAML-"])
+            f.close()
+            commandline = commandline + f' --cloud-init ./${local_cloud_init_yaml_filename}'
         if iname != '':
             commandline = commandline + f' -n {iname}'
             UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
@@ -235,11 +260,14 @@ while True:
                 window['-STOPBUTTON-'].update(disabled=True)
                 window['-DELETEBUTTON-'].update(disabled=False)
                 window['-SHELLINTOINSTANCEBUTTON-'].update(disabled=True)
-
-    # Annoyingly, the txtStatus box doesn't update before it runs the action. No idea why...
+    if event == '-LOADCLOUDINITFILE-':
+        chosen_file = (sg.popup_get_file('Which CloudInit File?', multiple_files=False, no_window=True, keep_on_top=True, file_types=((('YAML Files', '*.yml, *.yaml'),))))
+        if chosen_file != '':
+            window['-CLOUDINITINPUT-'].update(chosen_file)
+            window['-CLOUDINITYAML-'].update(loadYAMLCloudInitFile(filePathAndName=chosen_file))
+            window['-USECLOUDINIT-'].update(True)
     if event == '-STARTBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTING INSTANCE: {selectedInstanceName}", window)
-        # sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'start', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
         commandline = (f'multipass start {selectedInstanceName} -vvv')
         runCommand(cmd=(commandline), window=window)
         # runCommandInPopupWindow(cmd=commandline)
@@ -247,7 +275,6 @@ while True:
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-STOPBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPING INSTANCE: {selectedInstanceName}", window)
-        # sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'stop', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
         commandline = (f'multipass stop {selectedInstanceName} -vvv')
         runCommand(cmd=(commandline), window=window)
         # runCommandInPopupWindow(cmd=commandline)
@@ -274,15 +301,6 @@ while True:
             sg.popup("Sorry, not supported on this OS: " + platform.system() + "\n\nOnly supported on\n- Windows\n- Linux\n- Mac")
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"SHELLED INTO INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
-    # if event == '-SHOWCONSOLE-':
-        # if values["-SHOWCONSOLE-"] == False:
-        #     window['-OUTBOX-'].update(visible=False)
-        #     # window['-OUTBOX-'].hide_row()
-        #     # window.refresh()
-        # else:
-        #     # window['-OUTBOX-'].update(visible=True)
-        #     # window['-OUTBOX-'].unhide_row()
-        #     # window.refresh()
     if event == '-DECREASEGUISIZE-':
         GUISize -= 2
         sg.set_options(font=f'Default {GUISize}')
