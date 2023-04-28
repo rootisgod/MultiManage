@@ -11,10 +11,6 @@ import platform
 import yaml
 import textwrap
 
-
-
-icon_start_button = b'iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAQAAABKfvVzAAAAUElEQVQ4y+3SMRIAEQxA0dyH83CcuPcWX6WSZGW0fssbJoi8DgNwVhRNAAofGCQ4oZnEBw6JgAh9IwsQp/cgfaXD7eFYe2qs1PzDDfNrvH6ayimqkXYyrPoAAAAASUVORK5CYII='
-
 ######################################################################
 # Global Functions and Data
 ######################################################################
