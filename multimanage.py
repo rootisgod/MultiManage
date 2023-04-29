@@ -64,6 +64,8 @@ def runCommandSilently(cmd, timeout=None, window=None):
             window['-OUTBOX-'].update(line)
             window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     retval = p.wait(timeout)
+    if retval != 0:
+        sg.popup('Error. I will improve the deedback later... It is probably your cloudinit file that is invalid though.')
     return (retval, output)                         # also return the output just for fun
 
 def loadYAMLCloudInitFile(filePathAndName='./cloud-init/quick.yaml'):
@@ -94,8 +96,10 @@ def runCommandInPopupWindow(cmd, timeout=None):
         print(line)
         popup_window['-OUT-'].update(line)
         popup_window.Refresh() if window else None        # yes, a 1-line if, so shoot me
-    popup_window.close()
     retval = p.wait(timeout)
+    if retval != 0:
+        sg.popup('Error. I will improve the deedback later... It is probably your cloudinit file that is invalid though.')
+    popup_window.close()
     # return (retval, output)                         # also return the output just for fun
 
 # Had to create this to be able to resize the GUI. I'm not sure if this is the best way to do it, but it works.
@@ -116,11 +120,11 @@ def new_window():
     sliRAM = sg.Slider((0, 8192), 1024, 256, tick_interval=2048, orientation="h", key="-OUTPUT-RAM-", expand_x=True)
     txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth)
     sliDiskGB = sg.Slider((0, 128), 8, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
-    cbUseCloudInit = sg.CBox(textwrap.fill('Use a Cloud Init File?', labeltextwidth), default=False, enable_events=True, key='-USECLOUDINIT-')
+    cbUseCloudInit = sg.CBox(textwrap.fill('Run Cloud Init File?', labeltextwidth), default=False, enable_events=True, key='-USECLOUDINIT-')
     txtCloudInitFile = sg.Text(textwrap.fill('Load File?', labeltextwidth), size=labeltextwidth, key='-CLOUDINITFILEPATH-')
     inpCloudInitFile = sg.Input(expand_x=True, key='-CLOUDINITINPUT-')
     btnLoadCloudInitFile = sg.Button('Browse', key='-LOADCLOUDINITFILE-', expand_x=True)
-    mulCloudInitYAML = sg.Multiline(size=(50,8),  expand_x=True, key='-CLOUDINITYAML-')
+    mulCloudInitYAML = sg.Multiline(default_text='package_update: true\npackage_upgrade: true', size=(50,8),  expand_x=True, key='-CLOUDINITYAML-')
     btnCreateInstance = sg.Button('⚡ Create Instance', key="-CREATEINSTANCE-", expand_x=True)
     txtInstances = sg.Text('Instances')
     tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE)
@@ -193,7 +197,7 @@ if results[0]:
 # Data Initialization
 # Vars we want to keep in a kind of 'cache'
 selectedInstanceName = ''
-instanceTableNumRows = 8
+instanceTableNumRows = 6
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
 # Load Multipass Info
 UpdateInstanceTableValues()
@@ -224,10 +228,10 @@ while True:
         idisk = str(int((values['-OUTPUT-DISK-'])*1024*1024*1024))
         commandline = (f'multipass launch {itype} -vvv -c {icpus} -m {iram} -d {idisk}')
         if values["-USECLOUDINIT-"] == True:
-            f = open(f"${local_cloud_init_yaml_filename}", "w")
+            f = open(f"{local_cloud_init_yaml_filename}", "w")
             f.write(values["-CLOUDINITYAML-"])
             f.close()
-            commandline = commandline + f' --cloud-init ./${local_cloud_init_yaml_filename}'
+            commandline = commandline + f' --cloud-init ./{local_cloud_init_yaml_filename}'
         if iname != '':
             commandline = commandline + f' -n {iname}'
             UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
