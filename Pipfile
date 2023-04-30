@@ -7,6 +7,7 @@ name = "pypi"
 pysimplegui = "~=4.60.4"
 coverage = "*"
 pyyaml = "*"
+pandas = "*"
 
 [dev-packages]
 
