@@ -2,6 +2,7 @@
 # Import Required Libraries
 ######################################################################
 import PySimpleGUI as sg
+import pandas as pd
 import json
 import csv
 import subprocess
@@ -10,6 +11,16 @@ import sys
 import platform
 import yaml
 import textwrap
+import io
+import numpy as np
+
+######################################################################
+# Global Vars
+######################################################################
+selectedInstanceName = ''
+columnsToRead = ["Name", "State", "Ipv4", "Release", "Memory total", "Memory usage", "CPU(s)", "Load", "Disk usage","Disk total"]
+instanceTableNumRows = 6
+local_cloud_init_yaml_filename = 'cloud-init.yaml'
 
 ######################################################################
 # Global Functions and Data
@@ -26,14 +37,32 @@ def IsMultipassRunning():
         return False
 
 def UpdateInstanceTableValues():
+    # https://www.digitalocean.com/community/tutorials/update-rows-and-columns-python-pandas
+    global columnsToRead
     global instancesHeadersForTable
     global instancesDataForTable
-    results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'list', '--format', 'csv', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+    results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'info', '--all', '--format', 'csv', pipe_output=True, wait=True, stdin=subprocess.PIPE))
     if results[0]:
-        joinedData = results[0].splitlines()
-        csvData = csv.reader(joinedData)
-        instancesHeadersForTable = next(csvData)
-        instancesDataForTable = list(csvData)  # read everything else into a list of rows
+        df = pd.read_csv(io.StringIO(results[0]), usecols = columnsToRead)
+        # Massive the data a bit to remove NaNs
+        df['Memory total'] = df['Memory total'].replace(np.nan, 0)
+        df['Memory usage'] = df['Memory usage'].replace(np.nan, 0)
+        df['Disk total'] = df['Disk total'].replace(np.nan, 0)
+        df['Disk usage'] = df['Disk usage'].replace(np.nan, 0)
+        df['CPU(s)'] = df['CPU(s)'].replace(np.nan, 0)
+        df['Load'] = df['Load'].replace(np.nan, 0)
+        # Replace any others that we aren't calculating
+        df.fillna('', inplace=True)
+        # Make the numbers more human readable
+        df['Memory total'] = df['Memory total'].map(lambda x: f'{int((x/1024/1024))} MB')
+        df['Memory usage'] = df['Memory usage'].map(lambda x: f'{int((x/1024/1024))} MB')
+        df['Disk total'] = df['Disk total'].map(lambda x: f'{(x/1024/1024/1024):.2f} GB')
+        df['Disk usage'] = df['Disk usage'].map(lambda x: f'{(x/1024/1024/1024):.2f} GB')
+        df['CPU(s)'] = df['CPU(s)'].map(lambda x: int(x))
+        df['Load'] = df['Load'].map(lambda x: x)
+        data = df.values.tolist()
+        instancesHeadersForTable = list(df.columns.values)
+        instancesDataForTable    = list(data)
 
 def UpdateInstanceTableValuesAndTable(key):
     global instanceTableNumRows
@@ -68,16 +97,6 @@ def runCommandSilently(cmd, timeout=None, window=None):
         sg.popup('Error. I will improve the deedback later... It is probably your cloudinit file that is invalid though.')
     return (retval, output)                         # also return the output just for fun
 
-def loadYAMLCloudInitFile(filePathAndName='./cloud-init/quick.yaml'):
-    # https://stackoverflow.com/questions/67065794/how-to-open-a-file-upon-button-click-pysimplegui
-    cloud_init_yaml = ''
-    with open(filePathAndName, 'r') as file:
-        cloud_init_yaml = yaml.safe_load(file)
-    with open(filePathAndName, "rt", encoding='utf-8') as file:
-        cloud_init_yaml= file.read()
-    return cloud_init_yaml
-
-
 # This function does the actual "running" of the command in a popup window
 def runCommandInPopupWindow(cmd, timeout=None):
     popup_layout = [[sg.Output(size=(60,4), key='-OUT-')]]
@@ -86,7 +105,6 @@ def runCommandInPopupWindow(cmd, timeout=None):
     print(f'    COMMAND: "{cmd}"')
     print('==================================================')
     popup_window.Refresh() if window else None        # yes, a 1-line if, so shoot me
-    # f'GUI SIZE: {GUISize}'
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = ''
     for line in p.stdout:
@@ -101,6 +119,15 @@ def runCommandInPopupWindow(cmd, timeout=None):
         sg.popup('Error. I will improve the deedback later... It is probably your cloudinit file that is invalid though.')
     popup_window.close()
     # return (retval, output)                         # also return the output just for fun
+
+def loadYAMLCloudInitFile(filePathAndName='./cloud-init/quick.yaml'):
+    # https://stackoverflow.com/questions/67065794/how-to-open-a-file-upon-button-click-pysimplegui
+    cloud_init_yaml = ''
+    with open(filePathAndName, 'r') as file:
+        cloud_init_yaml = yaml.safe_load(file)
+    with open(filePathAndName, "rt", encoding='utf-8') as file:
+        cloud_init_yaml= file.read()
+    return cloud_init_yaml
 
 # Had to create this to be able to resize the GUI. I'm not sure if this is the best way to do it, but it works.
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/4976
@@ -126,6 +153,7 @@ def new_window():
     btnLoadCloudInitFile = sg.Button('Browse', key='-LOADCLOUDINITFILE-', expand_x=True)
     mulCloudInitYAML = sg.Multiline(default_text='package_update: true\npackage_upgrade: true', size=(50,8),  expand_x=True, key='-CLOUDINITYAML-')
     btnCreateInstance = sg.Button('⚡ Create Instance', key="-CREATEINSTANCE-", expand_x=True)
+    ### Table ###
     txtInstances = sg.Text('Instances')
     tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE)
     btnStartInstance  = sg.Button('⏵ Start Instance',   disabled=True, key='-STARTBUTTON-', expand_x=True)
@@ -133,6 +161,7 @@ def new_window():
     btnDeleteInstance = sg.Button('⨉ Delete Instance', disabled=True, key='-DELETEBUTTON-', expand_x=True)
     btnShellIntoInstance = sg.Button('$ Shell Into Instance', disabled=True, key='-SHELLINTOINSTANCEBUTTON-', expand_x=True)
     btnRefreshTable = sg.Button('↻ Refresh Table', disabled=False, key='-REFRESHTABLEBUTTON-', expand_x=True)
+    ### STATUS ###
     stsInstanceInfo = sg.InputText('', readonly=True, expand_x=True, disabled_readonly_background_color ='black', key='-STATUS-')
     cbConsole = sg.CBox('Console?', default=True, enable_events=True, key='-SHOWCONSOLE-')
     txtGuiSize = sg.Text(f'GUI SIZE: {GUISize}')
@@ -194,20 +223,15 @@ if results[0]:
     instanceNames = [i['name'] for i in jsonData['list']]
     print(str(len(instanceNames)) + " instances: " + ", ".join(instanceNames))
 
-# Data Initialization
-# Vars we want to keep in a kind of 'cache'
-selectedInstanceName = ''
-instanceTableNumRows = 6
-local_cloud_init_yaml_filename = 'cloud-init.yaml'
-# Load Multipass Info
-UpdateInstanceTableValues()
-
 ######################################################################
 # Look and Feel
 ######################################################################
+# Get Values for the Instance Table
+UpdateInstanceTableValues()
+# Setup and Create Window
 GUISize = 10
 sg.set_options(font=f'Default {GUISize}')
-sg.theme('DarkGrey13')    # Keep things interesting for your users
+sg.theme('DarkGrey13')
 window = new_window()
 
 ######################################################################

@@ -1,3 +1,4 @@
 pysimplegui
 pyinstaller
 pyyaml
+pandas
