@@ -9,7 +9,7 @@ coverage = "*"
 pyyaml = "6"
 numpy = "1.24"
 pandas = "2"
-pandas = "*"
+random-word = "1"
 
 [dev-packages]
 

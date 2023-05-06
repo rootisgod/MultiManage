@@ -13,6 +13,7 @@ import yaml
 import textwrap
 import io
 import pyperclip
+from random_word import RandomWords
 
 ######################################################################
 # Global Vars
@@ -94,12 +95,12 @@ def runCommandSilently(cmd, timeout=None, window=None):
             window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     retval = p.wait(timeout)
     if retval != 0:
-        sg.popup('Error. I will improve the feedback later... It is probably your cloudinit file that is invalid though.')
+        sg.popup('Error. I will improve the feedback later... It is probably your cloudinit file, or lack of RAM/DISK for chosen image that is invalid though.', keep_on_top=True)
     return (retval, output)                         # also return the output just for fun
 
 # This function does the actual "running" of the command in a popup window
 def runCommandInPopupWindow(cmd, timeout=None):
-    popup_layout = [[sg.Output(size=(60,4), key='-OUT-')]]
+    popup_layout = [[sg.Output(size=(60,8), key='-OUT-')]]
     popup_window = sg.Window('Running Actions. Please wait...', popup_layout, finalize=True, disable_close=True, keep_on_top=True)
     print('==================================================')
     print(f'    COMMAND: "{cmd}"')
@@ -116,7 +117,7 @@ def runCommandInPopupWindow(cmd, timeout=None):
         popup_window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     retval = p.wait(timeout)
     if retval != 0:
-        sg.popup('Error. I will improve the feedback later... It is probably your cloudinit file that is invalid though.')
+        sg.popup('Error. I will improve the feedback later... It is probably your cloudinit file, or lack of RAM/DISK for chosen image that is invalid though.', keep_on_top=True)
     popup_window.close()
     # return (retval, output)                         # also return the output just for fun
 
@@ -229,6 +230,8 @@ if results[0]:
 ######################################################################
 # Get Values for the Instance Table
 UpdateInstanceTableValues()
+# Setup random-words dictionary
+r = RandomWords()
 # GUI Size. Mac needs a slightly bigger size than windows/linux due to retina screen
 if platform.system() in ("Darwin"): GUISize = 14
 else: GUISize = 10
@@ -254,21 +257,17 @@ while True:
         icpus = str(int(values['-OUTPUT-CPU-']))
         iram  = str(int(values['-OUTPUT-RAM-'])*1024*1024)
         idisk = str(int((values['-OUTPUT-DISK-'])*1024*1024*1024))
-        commandline = (f'multipass launch {itype} -vvv -c {icpus} -m {iram} -d {idisk}')
+        if iname == '':
+            iname = r.get_random_word() + "-" + r.get_random_word()
+        commandline = (f'multipass launch {itype} -v -n {iname} -c {icpus} -m {iram} -d {idisk}')
         if values["-USECLOUDINIT-"] == True:
             f = open(f"{local_cloud_init_yaml_filename}", "w")
             f.write(values["-CLOUDINITYAML-"])
             f.close()
             commandline = commandline + f' --cloud-init ./{local_cloud_init_yaml_filename}'
-        if iname != '':
-            commandline = commandline + f' -n {iname}'
-            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
-            runCommand(cmd=(commandline), window=window)
-            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE '{iname}'", window)
-        else:
-            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING RANDOM NAMED INSTANCE - OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
-            runCommand(cmd=(commandline), window=window)
-            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE", window)
+        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
+        runCommand(cmd=(commandline), window=window)
+        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE '{iname}'", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-INSTANCEINFO-':
         selection = values[event]
@@ -305,29 +304,29 @@ while True:
             window['-USECLOUDINIT-'].update(True)
     if event == '-STARTBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTING INSTANCE: {selectedInstanceName}", window)
-        commandline = (f'multipass start {selectedInstanceName} -vvv')
+        commandline = (f'multipass start {selectedInstanceName} -v')
         runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-RESTARTBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"RESTARTING INSTANCE: {selectedInstanceName}", window)
-        commandline = (f'multipass restart {selectedInstanceName} -vvv')
+        commandline = (f'multipass restart {selectedInstanceName} -v')
         runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"RESTARTED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-STOPBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPING INSTANCE: {selectedInstanceName}", window)
-        commandline = (f'multipass stop {selectedInstanceName} -vvv')
+        commandline = (f'multipass stop {selectedInstanceName} -v')
         runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-DELETEBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETING INSTANCE: {selectedInstanceName} and PURGING ALL", window)
-        commandline = (f'multipass delete {selectedInstanceName} -vvv')
+        commandline = (f'multipass delete {selectedInstanceName} -v')
         runCommand(cmd=(commandline), window=window)
         purgeAll = sg.popup_yes_no('Purge All Deleted Instances?', f'Deleted instances are recoverable if not purged.\nTo recover a deleted instance use the multipass CLI command below\n \n  multipass recover {selectedInstanceName}\n\n')
         if purgeAll == 'Yes':
-            commandline = (f'multipass purge -vvv')
+            commandline = (f'multipass purge -v')
             runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETED INSTANCE: {selectedInstanceName} and PURGED ALL", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
