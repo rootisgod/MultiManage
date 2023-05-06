@@ -46,6 +46,7 @@ jobs:
                     - os: windows-latest
                       TARGET: windows
                       CMD_BUILD: |
+                        pip install pyinstaller
                         pyinstaller -F -w -n multimanage multimanage.py
                         Start-BitsTransfer -Source https://jrsoftware.org/download.php/is.exe -Destination is.exe
                         Start-Process -FilePath "is.exe" -Wait -ArgumentList "/silent /norestart"
