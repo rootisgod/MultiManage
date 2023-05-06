@@ -4,9 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pysimplegui = "~=4.60.4"
+pysimplegui = "4"
 coverage = "*"
-pyyaml = "*"
+pyyaml = "6"
+numpy = "1.24"
+pandas = "2"
 pandas = "*"
 
 [dev-packages]

@@ -3,8 +3,8 @@
 ######################################################################
 import PySimpleGUI as sg
 import pandas as pd
+import numpy as np
 import json
-import csv
 import subprocess
 import os
 import sys
@@ -12,7 +12,7 @@ import platform
 import yaml
 import textwrap
 import io
-import numpy as np
+import pyperclip
 
 ######################################################################
 # Global Vars
@@ -100,7 +100,7 @@ def runCommandSilently(cmd, timeout=None, window=None):
 # This function does the actual "running" of the command in a popup window
 def runCommandInPopupWindow(cmd, timeout=None):
     popup_layout = [[sg.Output(size=(60,4), key='-OUT-')]]
-    popup_window = sg.Window('Console', popup_layout, finalize=True)
+    popup_window = sg.Window('Running Actions. Please wait...', popup_layout, finalize=True, disable_close=True, keep_on_top=True)
     print('==================================================')
     print(f'    COMMAND: "{cmd}"')
     print('==================================================')
@@ -144,10 +144,10 @@ def new_window():
     txtCPUCores = sg.Text('CPU Cores', size=labeltextwidth)
     sliCPUCores = sg.Slider((1, 8), 2, 1, disable_number_display=True, tick_interval=1, orientation="h", key="-OUTPUT-CPU-", expand_x=True)
     txtRAM = sg.Text('RAM (MB)', size=labeltextwidth)
-    sliRAM = sg.Slider((0, 8192), 1024, 256, tick_interval=2048, orientation="h", key="-OUTPUT-RAM-", expand_x=True)
+    sliRAM = sg.Slider((0, 16384), 1024, 256, tick_interval=2048, orientation="h", key="-OUTPUT-RAM-", expand_x=True)
     txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth)
-    sliDiskGB = sg.Slider((0, 128), 8, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
-    cbUseCloudInit = sg.CBox(textwrap.fill('Run Cloud Init File?', labeltextwidth), default=False, enable_events=True, key='-USECLOUDINIT-')
+    sliDiskGB = sg.Slider((0, 256), 8, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
+    cbUseCloudInit = sg.CBox(textwrap.fill('Run Cloud Init File?', labeltextwidth), default=True, enable_events=True, key='-USECLOUDINIT-')
     txtCloudInitFile = sg.Text(textwrap.fill('Load File?', labeltextwidth), size=labeltextwidth, key='-CLOUDINITFILEPATH-')
     inpCloudInitFile = sg.Input(expand_x=True, key='-CLOUDINITINPUT-')
     btnLoadCloudInitFile = sg.Button('Browse', key='-LOADCLOUDINITFILE-', expand_x=True)
@@ -155,15 +155,16 @@ def new_window():
     btnCreateInstance = sg.Button('⚡ Create Instance', key="-CREATEINSTANCE-", expand_x=True)
     ### Table ###
     txtInstances = sg.Text('Instances')
-    tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE)
-    btnStartInstance  = sg.Button('⏵ Start Instance',   disabled=True, key='-STARTBUTTON-', expand_x=True)
-    btnStopInstance   = sg.Button('⏹ Stop Instance',   disabled=True, key='-STOPBUTTON-', expand_x=True)
+    tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE, right_click_menu=['&Right', ['Copy IPV4 Address', 'Copy Name']], enable_click_events=True)  # https://github.com/PySimpleGUI/PySimpleGUI/issues/5198
+    btnStartInstance  = sg.Button('⏵ Start Instance',  disabled=True, key='-STARTBUTTON-',  expand_x=True)
+    btnRestartInstance  = sg.Button('↻ Restart Instance',  disabled=True, key='-RESTARTBUTTON-',  expand_x=True)
+    btnStopInstance   = sg.Button('⏹ Stop Instance',   disabled=True, key='-STOPBUTTON-',   expand_x=True)
     btnDeleteInstance = sg.Button('⨉ Delete Instance', disabled=True, key='-DELETEBUTTON-', expand_x=True)
     btnShellIntoInstance = sg.Button('$ Shell Into Instance', disabled=True, key='-SHELLINTOINSTANCEBUTTON-', expand_x=True)
     btnRefreshTable = sg.Button('↻ Refresh Table', disabled=False, key='-REFRESHTABLEBUTTON-', expand_x=True)
     ### STATUS ###
     stsInstanceInfo = sg.InputText('', readonly=True, expand_x=True, disabled_readonly_background_color ='black', key='-STATUS-')
-    cbConsole = sg.CBox('Console?', default=True, enable_events=True, key='-SHOWCONSOLE-')
+    cbConsole = sg.CBox('Console?', default=True, enable_events=True, key='-SHOWCONSOLE-', visible=False)
     txtGuiSize = sg.Text(f'GUI SIZE: {GUISize}')
     btnDecreaseGUISize = sg.Button('-', disabled=False, size=2, key='-DECREASEGUISIZE-')
     btnIncreaseGUISize = sg.Button('+', disabled=False, size=2, key='-INCREASEGUISIZE-')
@@ -190,7 +191,7 @@ def new_window():
         [
             [txtInstances],
             [tblInstances],
-            [[btnStartInstance, btnStopInstance, btnDeleteInstance, btnShellIntoInstance],
+            [[btnStartInstance, btnRestartInstance, btnStopInstance, btnDeleteInstance, btnShellIntoInstance],
             [btnRefreshTable]],
         ],
         ### STATUS ###
@@ -228,8 +229,11 @@ if results[0]:
 ######################################################################
 # Get Values for the Instance Table
 UpdateInstanceTableValues()
+# GUI Size. Mac needs a slightly bigger size than windows/linux due to retina screen
+if platform.system() in ("Darwin"): GUISize = 14
+else: GUISize = 10
+
 # Setup and Create Window
-GUISize = 10
 sg.set_options(font=f'Default {GUISize}')
 sg.theme('DarkGrey13')
 window = new_window()
@@ -275,15 +279,24 @@ while True:
             # Start Button
             if ('Running' in data_selected):
                 window['-STARTBUTTON-'].update(disabled=True)
+                window['-RESTARTBUTTON-'].update(disabled=False)
                 window['-STOPBUTTON-'].update(disabled=False)
                 window['-DELETEBUTTON-'].update(disabled=True)
                 window['-SHELLINTOINSTANCEBUTTON-'].update(disabled=False)
             # Stop Button
             if ('Stopped' in data_selected):
                 window['-STARTBUTTON-'].update(disabled=False)
+                window['-RESTARTBUTTON-'].update(disabled=True)
                 window['-STOPBUTTON-'].update(disabled=True)
                 window['-DELETEBUTTON-'].update(disabled=False)
                 window['-SHELLINTOINSTANCEBUTTON-'].update(disabled=True)
+    # https://github.com/PySimpleGUI/PySimpleGUI/issues/5198
+    if isinstance(event, tuple) and event[:2] == ('-INSTANCEINFO-', '+CLICKED+'):
+        row, col = position = event[2]
+        if None not in position and row >= 0:
+            copiedValue = instancesDataForTable[row][col]
+            pyperclip.copy(copiedValue)
+            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"COPIED TO CLIPBOARD: {copiedValue}", window)
     if event == '-LOADCLOUDINITFILE-':
         chosen_file = (sg.popup_get_file('Which CloudInit File?', multiple_files=False, no_window=True, keep_on_top=True, file_types=((('YAML Files', '*.yml, *.yaml'),))))
         if chosen_file != '':
@@ -294,21 +307,29 @@ while True:
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTING INSTANCE: {selectedInstanceName}", window)
         commandline = (f'multipass start {selectedInstanceName} -vvv')
         runCommand(cmd=(commandline), window=window)
-        # runCommandInPopupWindow(cmd=commandline)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTED INSTANCE: {selectedInstanceName}", window)
+        UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
+    if event == '-RESTARTBUTTON-':
+        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"RESTARTING INSTANCE: {selectedInstanceName}", window)
+        commandline = (f'multipass restart {selectedInstanceName} -vvv')
+        runCommand(cmd=(commandline), window=window)
+        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"RESTARTED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-STOPBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPING INSTANCE: {selectedInstanceName}", window)
         commandline = (f'multipass stop {selectedInstanceName} -vvv')
         runCommand(cmd=(commandline), window=window)
-        # runCommandInPopupWindow(cmd=commandline)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPED INSTANCE: {selectedInstanceName}", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-DELETEBUTTON-':
-        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETING INSTANCE: {selectedInstanceName}", window)
-        sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'delete', selectedInstanceName, pipe_output=True, wait=True, stdin=subprocess.PIPE))
-        sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'purge', pipe_output=True, wait=True, stdin=subprocess.PIPE))
-        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETED INSTANCE: {selectedInstanceName}", window)
+        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETING INSTANCE: {selectedInstanceName} and PURGING ALL", window)
+        commandline = (f'multipass delete {selectedInstanceName} -vvv')
+        runCommand(cmd=(commandline), window=window)
+        purgeAll = sg.popup_yes_no('Purge All Deleted Instances?', f'Deleted instances are recoverable if not purged.\nTo recover use the via multipass CLI command below\n \n  multipass recover {selectedInstanceName}')
+        if purgeAll == 'Yes':
+            commandline = (f'multipass purge -vvv')
+            runCommand(cmd=(commandline), window=window)
+        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETED INSTANCE: {selectedInstanceName} and PURGED ALL", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-REFRESHTABLEBUTTON-':
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
