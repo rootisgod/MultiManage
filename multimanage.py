@@ -94,7 +94,7 @@ def runCommandSilently(cmd, timeout=None, window=None):
             window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     retval = p.wait(timeout)
     if retval != 0:
-        sg.popup('Error. I will improve the deedback later... It is probably your cloudinit file that is invalid though.')
+        sg.popup('Error. I will improve the feedback later... It is probably your cloudinit file that is invalid though.')
     return (retval, output)                         # also return the output just for fun
 
 # This function does the actual "running" of the command in a popup window
@@ -116,7 +116,7 @@ def runCommandInPopupWindow(cmd, timeout=None):
         popup_window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     retval = p.wait(timeout)
     if retval != 0:
-        sg.popup('Error. I will improve the deedback later... It is probably your cloudinit file that is invalid though.')
+        sg.popup('Error. I will improve the feedback later... It is probably your cloudinit file that is invalid though.')
     popup_window.close()
     # return (retval, output)                         # also return the output just for fun
 
@@ -325,7 +325,7 @@ while True:
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETING INSTANCE: {selectedInstanceName} and PURGING ALL", window)
         commandline = (f'multipass delete {selectedInstanceName} -vvv')
         runCommand(cmd=(commandline), window=window)
-        purgeAll = sg.popup_yes_no('Purge All Deleted Instances?', f'Deleted instances are recoverable if not purged.\nTo recover use the via multipass CLI command below\n \n  multipass recover {selectedInstanceName}')
+        purgeAll = sg.popup_yes_no('Purge All Deleted Instances?', f'Deleted instances are recoverable if not purged.\nTo recover a deleted instance use the multipass CLI command below\n \n  multipass recover {selectedInstanceName}\n\n')
         if purgeAll == 'Yes':
             commandline = (f'multipass purge -vvv')
             runCommand(cmd=(commandline), window=window)
