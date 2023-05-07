@@ -4,22 +4,24 @@
 import PySimpleGUI as sg
 import pandas as pd
 import numpy as np
+import pyperclip
+import yaml
+# Builtin packages
 import json
 import subprocess
 import os
 import sys
 import platform
-import yaml
 import textwrap
 import io
-import pyperclip
-from random_word import RandomWords
+import random
 
 ######################################################################
 # Global Vars
 ######################################################################
+randomwords = ["time", "year", "people", "way", "day", "man", "thing", "woman", "life", "child", "world", "school", "state", "family", "student", "group", "country", "problem", "hand", "part", "place", "case", "week", "company", "system", "program", "question", "work", "government", "number", "night", "point", "home", "water", "room", "mother", "area", "money", "story", "fact", "month", "lot", "right", "study", "book", "eye", "job", "word", "business", "issue", "side", "kind", "head", "house", "service", "friend", "father", "power", "hour", "game", "line", "end", "member", "law", "car", "city", "community", "name", "president", "team", "minute", "idea", "kid", "body", "information", "back", "parent", "face", "others", "level", "office", "door", "health", "person", "art", "war", "history", "party", "result", "change", "morning", "reason", "research", "girl", "guy", "moment", "air", "teacher", "force", "education"]
 selectedInstanceName = ''
-columnsToRead = ["Name", "State", "Ipv4", "Release", "Memory total", "Memory usage", "CPU(s)", "Load", "Disk usage","Disk total"]
+columnsToRead = ["Name", "State", "Ipv4", "Release", "Memory total", "Memory usage", "CPU(s)", "Load", "Disk usage", "Disk total"]
 instanceTableNumRows = 6
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
 
@@ -36,6 +38,9 @@ def IsMultipassRunning():
     else:
         print('MULTIPASS NOT FOUND')
         return False
+
+def get_random_word():
+    return random.choice(randomwords)
 
 def UpdateInstanceTableValues():
     # https://www.digitalocean.com/community/tutorials/update-rows-and-columns-python-pandas
@@ -230,8 +235,6 @@ if results[0]:
 ######################################################################
 # Get Values for the Instance Table
 UpdateInstanceTableValues()
-# Setup random-words dictionary
-r = RandomWords()
 # GUI Size. Mac needs a slightly bigger size than windows/linux due to retina screen
 if platform.system() in ("Darwin"): GUISize = 14
 else: GUISize = 10
@@ -258,7 +261,7 @@ while True:
         iram  = str(int(values['-OUTPUT-RAM-'])*1024*1024)
         idisk = str(int((values['-OUTPUT-DISK-'])*1024*1024*1024))
         if iname == '':
-            iname = r.get_random_word() + "-" + r.get_random_word()
+            iname = get_random_word() + "-" + get_random_word()
         commandline = (f'multipass launch {itype} -v -n {iname} -c {icpus} -m {iram} -d {idisk}')
         if values["-USECLOUDINIT-"] == True:
             f = open(f"{local_cloud_init_yaml_filename}", "w")
