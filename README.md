@@ -80,7 +80,23 @@ Just for my reference. How to setup a virtual env and test a build of the instal
 
 Download and unzip repo
 
+### Linux Mint
+
+```bash
+sudo apt install python3.10-venv python3-tk -y
+python3 -m venv ./venv-multimanage/
+sudo chmod +x ./venv-multimanage/bin/activate
+. ./venv-multimanage/bin/activate
+python3 -m pip install --upgrade pip
+pip install -r requirements.txt
+python3 multimanage.py
+pip install pyinstaller
+pyinstaller -F -w -n multimanage multimanage.py
 ```
+
+### Windows
+
+```powershell
 python -m venv .\venv-multimanage\
 .\venv-multimanage\Scripts\Activate.ps1
 python -m pip install --upgrade pip
@@ -88,3 +104,4 @@ pip install -r requirements.txt
 pip install pyinstaller
 pyinstaller -F -w -n multimanage multimanage.py
 ```
+
