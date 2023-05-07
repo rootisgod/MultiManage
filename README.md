@@ -73,3 +73,18 @@ sudo apt update
 sudo apt install snapd
 sudo snap install multipass
 ```
+
+## Project Setup
+
+Just for my reference. How to setup a virtual env and test a build of the installer on windows.
+
+Download and unzip repo
+
+```
+python -m venv .\venv-multimanage\
+.\venv-multimanage\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+pip install pyinstaller
+pyinstaller -F -w -n multimanage multimanage.py
+```
