@@ -197,8 +197,7 @@ def new_window():
         [
             [txtInstances],
             [tblInstances],
-            [[btnStartInstance, btnRestartInstance, btnStopInstance, btnDeleteInstance, btnShellIntoInstance],
-            [btnRefreshTable]],
+            [[btnStartInstance, btnRestartInstance, btnStopInstance, btnDeleteInstance, btnShellIntoInstance,btnRefreshTable],],
         ],
         ### STATUS ###
         [
@@ -297,8 +296,14 @@ while True:
         row, col = position = event[2]
         if None not in position and row >= 0:
             copiedValue = instancesDataForTable[row][col]
-            pyperclip.copy(copiedValue)
-            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"COPIED TO CLIPBOARD: {copiedValue}", window)
+            try:
+                pyperclip.copy(copiedValue)
+                UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"COPIED TO CLIPBOARD: {copiedValue}", window)
+            except:
+                if platform.system() in ("Linux"):
+                    UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CANNOT COPY '{copiedValue}' TO CLIPBOARD. INSTALL XSEL TO FIX", window)
+                else:
+                    UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CANNOT COPY '{copiedValue}' TO CLIPBOARD. UNKNOWN REASON", window)
     if event == '-LOADCLOUDINITFILE-':
         chosen_file = (sg.popup_get_file('Which CloudInit File?', multiple_files=False, no_window=True, keep_on_top=True, file_types=((('YAML Files', '*.yml, *.yaml'),))))
         if chosen_file != '':
