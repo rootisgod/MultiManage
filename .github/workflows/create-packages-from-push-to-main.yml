@@ -53,6 +53,15 @@ jobs:
                         .'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /dMyAppVersion=1.$($env:GITHUB_RUN_NUMBER) multimanage.iss
                       OUT_FILE_NAME: multimanage.exe
                       ASSET_MIME: application/vnd.microsoft.portable-executable
+                    - os: ubuntu-22.04
+                      TARGET: linux
+                      CMD_BUILD: >
+                        pip install pyinstaller && 
+                        pyinstaller -F -w -n multimanage multimanage.py &&
+                        cd dist/ &&
+                        zip multimanage.zip multimanage
+                      OUT_FILE_NAME: multimanage.zip
+                      ASSET_MIME: application/zip
         steps:
             - uses: actions/checkout@v3
             - name: Set up Python
@@ -83,4 +92,15 @@ jobs:
                 upload_url: ${{ needs.createrelease.outputs.upload_url }}
                 asset_path: ./Output/${{ matrix.OUT_FILE_NAME}}
                 asset_name: Installer-${{ matrix.OUT_FILE_NAME}}
+                asset_content_type: ${{ matrix.ASSET_MIME}}
+            - if: matrix.os == 'ubuntu-22.04'
+              name: Upload Linux Zip
+              id: upload-linux-zip-release-asset
+              uses: actions/upload-release-asset@v1
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                upload_url: ${{ needs.createrelease.outputs.upload_url }}
+                asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
+                asset_name: Linux-${{ matrix.OUT_FILE_NAME}}
                 asset_content_type: ${{ matrix.ASSET_MIME}}
