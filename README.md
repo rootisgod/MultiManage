@@ -29,7 +29,7 @@ Just for my reference. How to setup a virtual env and test a build of the instal
 
 Download and unzip repo
 
-### Linux Mint
+### Ubuntu 22.04
 
 ```bash
 sudo apt install python3 python3-pip python3-venv python3-tk -y
@@ -37,7 +37,7 @@ python3 -m venv ./venv-multimanage/
 sudo chmod +x ./venv-multimanage/bin/activate
 . ./venv-multimanage/bin/activate
 python3 -m pip install --upgrade pip
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 python3 multimanage.py
 pip install pyinstaller
 pyinstaller -F -w -n multimanage multimanage.py
