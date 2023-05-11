@@ -6,6 +6,8 @@ import pandas as pd
 import numpy as np
 import pyperclip
 import yaml
+# Needed for linux machines
+import tkinter as tk
 # Builtin packages
 import json
 import subprocess
