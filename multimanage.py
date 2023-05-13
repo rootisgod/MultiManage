@@ -109,9 +109,9 @@ def runCommandSilently(cmd, timeout=None, window=None):
 def runCommandInPopupWindow(cmd, timeout=None):
     popup_layout = [[sg.Output(size=(60,8), key='-OUT-')]]
     popup_window = sg.Window('Running Actions. Please wait...', popup_layout, finalize=True, disable_close=True, keep_on_top=True)
-    print('==================================================')
+    print('===========================================')
     print(f'    COMMAND: "{cmd}"')
-    print('==================================================')
+    print('===========================================')
     popup_window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = ''
@@ -347,8 +347,18 @@ while True:
         if platform.system() in ("Windows"):
             os.system(f"start cmd /c multipass shell {selectedInstanceName}")
         elif platform.system() in ("Linux"):
-            # Need to see if we need a KDE style alternative, works for now
-            os.system(f"gnome-terminal -e 'bash -c \"multipass shell {selectedInstanceName} \"'")
+            # Gnome and KDE. Not sure if we need others
+            try:
+                user_shell = os.getenv('SHELL')
+                if user_shell is None:
+                    user_shell = '/bin/bash'
+                try:
+                    os.system(f"gnome-terminal -e '{user_shell} -c \"multipass shell {selectedInstanceName}\"'")
+                except:
+                    os.system(f"konsole -e '{user_shell} -c \"multipass shell {selectedInstanceName}\"'")
+            except:
+                UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR SHELL SOMEHOW. SET THE $SHELL VAR', window)
+                break
         elif platform.system() in ("Darwin"):
             os.system(f'echo "/usr/local/bin/multipass shell {selectedInstanceName}" > shell.sh ; chmod +x shell.sh ; open -a Terminal shell.sh ; sleep 2; rm shell.sh')
         else:
