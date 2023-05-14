@@ -51,7 +51,7 @@ jobs:
                         pip3 install pyinstaller
                         pyinstaller -F -w -n multimanage multimanage.py
                         cd dist
-                        zip multimanage.zip multimanage
+                        zip multimanage.zip multimanage.app
                       OUT_FILE_NAME: multimanage.zip
                       ASSET_MIME: application/zip
                     - os: windows-latest
@@ -100,16 +100,16 @@ jobs:
 #                  pip install -r requirements.txt
             - name: Build with pyinstaller for ${{matrix.TARGET}}
               run: ${{matrix.CMD_BUILD}}
-            - name: Upload Release Asset
-              id: upload-release-asset
-              uses: actions/upload-release-asset@v1
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  upload_url: ${{ needs.createrelease.outputs.upload_url }}
-                  asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
-                  asset_name: ${{ matrix.OUT_FILE_NAME}}
-                  asset_content_type: ${{ matrix.ASSET_MIME}}
+#             - name: Upload Release Asset
+#               id: upload-release-asset
+#               uses: actions/upload-release-asset@v1
+#               env:
+#                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#               with:
+#                   upload_url: ${{ needs.createrelease.outputs.upload_url }}
+#                   asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
+#                   asset_name: ${{ matrix.OUT_FILE_NAME}}
+#                   asset_content_type: ${{ matrix.ASSET_MIME}}
             - if: matrix.targer == 'windows-portable'
               name: Upload Windows Exe
               id: upload-windows-portable-release-asset
