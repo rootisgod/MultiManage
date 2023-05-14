@@ -46,6 +46,8 @@ jobs:
                     - os: macos-latest
                       TARGET: macos
                       CMD_BUILD: |
+                        python3 -m pip install --upgrade pip
+                        pip install -r requirements.txt
                         pip install pyinstaller
                         pyinstaller -F -w -n multimanage multimanage.py
                         cd dist
@@ -55,6 +57,8 @@ jobs:
                     - os: windows-latest
                       TARGET: windows
                       CMD_BUILD: |
+                        python -m pip install --upgrade pip
+                        pip install -r requirements.txt
                         pip install pyinstaller
                         pyinstaller -F -w -n multimanage multimanage.py
                         Start-BitsTransfer -Source https://jrsoftware.org/download.php/is.exe -Destination is.exe
@@ -81,10 +85,10 @@ jobs:
             - uses: actions/checkout@v3
             - name: Set up Python
               uses: actions/setup-python@v4
-            - name: Install dependencies using pip
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
+#            - name: Install dependencies using pip
+#              run: |
+#                  python -m pip install --upgrade pip
+#                  pip install -r requirements.txt
             - name: Build with pyinstaller for ${{matrix.TARGET}}
               run: ${{matrix.CMD_BUILD}}
             - name: Upload Release Asset
