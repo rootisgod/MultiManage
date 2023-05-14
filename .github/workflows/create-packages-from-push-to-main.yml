@@ -50,8 +50,8 @@ jobs:
                         pip3 install -r requirements.txt
                         pip3 install pyinstaller
                         pyinstaller -F -w -n multimanage --icon MultiManage-Logo.ico multimanage.py
-                        cd dista
-                        zip multimanage multimanage.app  
+                        cd dist
+                        zip multimanage multimanage.app
                       OUT_FILE_NAME: multimanage.zip
                       ASSET_MIME: application/zip
                     - os: windows-latest
