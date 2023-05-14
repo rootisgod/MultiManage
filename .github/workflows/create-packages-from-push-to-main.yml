@@ -51,8 +51,7 @@ jobs:
                         pip3 install pyinstaller
                         pyinstaller -F -w -n multimanage multimanage.py
                         cd dist
-                        ls -lah
-                        zip multimanage.zip multimanage.app/  
+                        zip multimanage multimanage.app/  
                       OUT_FILE_NAME: multimanage.zip
                       ASSET_MIME: application/zip
                     - os: windows-latest
