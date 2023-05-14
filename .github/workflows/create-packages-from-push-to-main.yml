@@ -46,7 +46,7 @@ jobs:
                     - os: macos-latest
                       TARGET: macos
                       CMD_BUILD: |
-                        python3 -m pip3 install --upgrade pip
+                        python3 -m pip install --upgrade pip
                         pip3 install -r requirements.txt
                         pip3 install pyinstaller
                         pyinstaller -F -w -n multimanage multimanage.py
@@ -55,7 +55,7 @@ jobs:
                       OUT_FILE_NAME: multimanage.zip
                       ASSET_MIME: application/zip
                     - os: windows-latest
-                      TARGET: windows
+                      TARGET: windows-installer
                       CMD_BUILD: |
                         python -m pip install --upgrade pip
                         pip install -r requirements.txt
@@ -66,6 +66,15 @@ jobs:
                         .'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /dMyAppVersion=1.$($env:GITHUB_RUN_NUMBER) multimanage.iss
                       OUT_FILE_NAME: multimanage.exe
                       ASSET_MIME: application/vnd.microsoft.portable-executable
+                    - os: windows-latest
+                      TARGET: windows-portable
+                      CMD_BUILD: |
+                        python -m pip install --upgrade pip
+                        pip install -r requirements.txt
+                        pip install pyinstaller
+                        pyinstaller -F -w -n multimanage multimanage.py
+                      OUT_FILE_NAME: multimanage.exe
+                      ASSET_MIME: application/vnd.microsoft.portable-executable                    
                     - os: ubuntu-22.04
                       TARGET: linux
                       CMD_BUILD: |
@@ -101,7 +110,18 @@ jobs:
                   asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
                   asset_name: ${{ matrix.OUT_FILE_NAME}}
                   asset_content_type: ${{ matrix.ASSET_MIME}}
-            - if: matrix.os == 'windows-latest'
+            - if: matrix.targer == 'windows-portable'
+              name: Upload Windows Exe
+              id: upload-windows-portable-release-asset
+              uses: actions/upload-release-asset@v1
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                upload_url: ${{ needs.createrelease.outputs.upload_url }}
+                asset_path: ./Output/${{ matrix.OUT_FILE_NAME}}
+                asset_name: ${{ matrix.OUT_FILE_NAME}}
+                asset_content_type: ${{ matrix.ASSET_MIME}}
+            - if: matrix.target == 'windows-installer'
               name: Upload Windows Installer Exe
               id: upload-windows-installer-release-asset
               uses: actions/upload-release-asset@v1
