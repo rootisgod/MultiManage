@@ -49,7 +49,7 @@ jobs:
                         python3 -m pip install --upgrade pip
                         pip3 install -r requirements.txt
                         pip3 install pyinstaller
-                        pyinstaller -F -w -n multimanage multimanage.py
+                        pyinstaller -F -w -n multimanage --icon MultiManage-Logo.ico multimanage.py
                         cd dist
                         zip multimanage multimanage.app/  
                       OUT_FILE_NAME: multimanage.zip
@@ -60,7 +60,7 @@ jobs:
                         python -m pip install --upgrade pip
                         pip install -r requirements.txt
                         pip install pyinstaller
-                        pyinstaller -F -w -n multimanage multimanage.py
+                        pyinstaller -F -w -n multimanage --icon MultiManage-Logo.ico multimanage.py
                         Start-BitsTransfer -Source https://jrsoftware.org/download.php/is.exe -Destination is.exe
                         Start-Process -FilePath "is.exe" -Wait -ArgumentList "/silent /norestart"
                         .'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /dMyAppVersion=1.$($env:GITHUB_RUN_NUMBER) multimanage.iss
@@ -85,7 +85,7 @@ jobs:
                         python3 -m pip install --upgrade pip
                         pip3 install -r requirements.txt
                         pip install pyinstaller
-                        pyinstaller -F -w -n multimanage multimanage.py
+                        pyinstaller -F -w -n multimanage --icon MultiManage-Logo.ico multimanage.py
                         cd dist/
                         zip multimanage.zip multimanage
                       OUT_FILE_NAME: multimanage.zip

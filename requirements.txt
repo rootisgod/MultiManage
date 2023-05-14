@@ -8,6 +8,7 @@ macholib==1.16.2
 numpy==1.24.3
 packaging==23.1
 pandas==2.0.1
+pillow==9.5.0
 pluggy==1.0.0
 pyperclip==1.8.2
 PySimpleGUI==4.60.4
