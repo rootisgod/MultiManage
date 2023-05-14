@@ -43,6 +43,15 @@ jobs:
             fail-fast: false
             matrix:
                 include:
+                    - os: macos-latest
+                      TARGET: macos
+                      CMD_BUILD: |
+                        pip install pyinstaller
+                        pyinstaller -F -w -n multimanage multimanage.py
+                        cd dist
+                        zip multimanage.zip multimanage
+                      OUT_FILE_NAME: multimanage.zip
+                      ASSET_MIME: application/zip
                     - os: windows-latest
                       TARGET: windows
                       CMD_BUILD: |
@@ -109,4 +118,15 @@ jobs:
                 upload_url: ${{ needs.createrelease.outputs.upload_url }}
                 asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
                 asset_name: Linux-${{ matrix.OUT_FILE_NAME}}
+                asset_content_type: ${{ matrix.ASSET_MIME}}
+            - if: matrix.os == 'macos-latest'
+              name: Upload Mac Zip
+              id: upload-mac-zip-release-asset
+              uses: actions/upload-release-asset@v1
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              with:
+                upload_url: ${{ needs.createrelease.outputs.upload_url }}
+                asset_path: ./dist/${{ matrix.OUT_FILE_NAME}}
+                asset_name: Mac-${{ matrix.OUT_FILE_NAME}}
                 asset_content_type: ${{ matrix.ASSET_MIME}}

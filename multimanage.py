@@ -247,10 +247,24 @@ UpdateInstanceTableValues()
 screen_height = GetScreenHeight()
 if platform.system() in ("Darwin"):
     GUISize = 14
-elif screen_height < 900:
-    GUISize = 8
-elif screen_height > 1200:
-    GUISize = 12
+if platform.system() in ("Windows"):
+    if screen_height < 800:
+        GUISize = 10
+    elif screen_height >= 800 and screen_height < 1024:
+        GUISize = 12
+    elif screen_height >= 1024 and screen_height <= 1200:
+        GUISize = 14
+    elif screen_height > 1200:
+        GUISize = 16
+if platform.system() in ("Linux"):
+    if screen_height < 800:
+        GUISize = 8
+    elif screen_height >= 800 and screen_height < 1024:
+        GUISize = 10
+    elif screen_height >= 1024 and screen_height <= 1200:
+        GUISize = 12
+    elif screen_height > 1200:
+        GUISize = 14
 else:
     GUISize = 10
 
