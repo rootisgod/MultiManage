@@ -50,8 +50,8 @@ jobs:
                         pip3 install -r requirements.txt
                         pip3 install pyinstaller
                         pyinstaller -F -w -n multimanage --icon MultiManage-Logo.ico multimanage.py
-                        cd dist
-                        zip multimanage multimanage.app/  
+                        cd dista
+                        zip multimanage multimanage.app  
                       OUT_FILE_NAME: multimanage.zip
                       ASSET_MIME: application/zip
                     - os: windows-latest
@@ -72,7 +72,7 @@ jobs:
                         python -m pip install --upgrade pip
                         pip install -r requirements.txt
                         pip install pyinstaller
-                        pyinstaller -F -w -n multimanage multimanage.py
+                        pyinstaller -F -w -n multimanage --icon MultiManage-Logo.ico multimanage.py
                       OUT_FILE_NAME: multimanage.exe
                       ASSET_MIME: application/vnd.microsoft.portable-executable                    
                     - os: ubuntu-22.04
