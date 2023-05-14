@@ -350,12 +350,24 @@ while True:
             # Gnome and KDE. Not sure if we need others
             try:
                 user_shell = os.getenv('SHELL')
+                user_terminal = 'gnome-terminal'
                 if user_shell is None:
                     user_shell = '/bin/bash'
+                # Naively try and see if the BASH command returns characters with the terminal path
+                if len(subprocess.check_output(f'whereis gnome-terminal', shell=True)) > 20:
+                    user_terminal = 'gnome-terminal'
+                elif len(subprocess.check_output(f'whereis konsole', shell=True)) > 20:
+                    user_terminal = 'konsole'
+                elif len(subprocess.check_output(f'whereis xfce4-terminal', shell=True)) > 20:
+                    user_terminal = 'xfce4-terminal'
+                else:
+                    user_terminal = 'gnome-terminal'
+                # Run the command
                 try:
-                    os.system(f"gnome-terminal -e '{user_shell} -c \"multipass shell {selectedInstanceName}\"'")
+                    os.system(f"{user_terminal} -e '{user_shell} -c \"multipass shell {selectedInstanceName}\"'")
+                    subprocess.check_output('whereis gnome-terminal', shell=True)
                 except:
-                    os.system(f"konsole -e '{user_shell} -c \"multipass shell {selectedInstanceName}\"'")
+                    UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR TERMINAL SOMEHOW', window)
             except:
                 UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR SHELL SOMEHOW. SET THE $SHELL VAR', window)
                 break
