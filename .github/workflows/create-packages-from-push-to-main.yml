@@ -51,7 +51,8 @@ jobs:
                         pip3 install pyinstaller
                         pyinstaller -F -w -n multimanage multimanage.py
                         cd dist
-                        zip multimanage.zip multimanage.app/
+                        ls -lah
+                        zip multimanage.zip multimanage.app/  
                       OUT_FILE_NAME: multimanage.zip
                       ASSET_MIME: application/zip
                     - os: windows-latest
@@ -96,7 +97,7 @@ jobs:
               uses: actions/setup-python@v4
             - name: Build for ${{matrix.TARGET}}
               run: ${{matrix.CMD_BUILD}}
-            - if: matrix.targer == 'windows-portable'
+            - if: matrix.target == 'windows-portable'
               name: Upload Windows Portable exe
               id: upload-windows-portable-release-asset
               uses: actions/upload-release-asset@v1
