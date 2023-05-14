@@ -27,6 +27,13 @@ columnsToRead = ["Name", "State", "Ipv4", "Release", "Memory total", "Memory usa
 instanceTableNumRows = 6
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
 
+
+def GetScreenHeight():
+    root = tk.Tk()
+    root.withdraw()
+    SCREEN_HEIGHT = root.winfo_screenheight()
+    return SCREEN_HEIGHT
+
 ######################################################################
 # Global Functions and Data
 ######################################################################
@@ -237,8 +244,15 @@ if results[0]:
 # Get Values for the Instance Table
 UpdateInstanceTableValues()
 # GUI Size. Mac needs a slightly bigger size than windows/linux due to retina screen
-if platform.system() in ("Darwin"): GUISize = 14
-else: GUISize = 10
+screen_height = GetScreenHeight()
+if platform.system() in ("Darwin"):
+    GUISize = 14
+elif screen_height < 900:
+    GUISize = 8
+elif screen_height > 1200:
+    GUISize = 12
+else:
+    GUISize = 10
 
 # Setup and Create Window
 sg.set_options(font=f'Default {GUISize}')
