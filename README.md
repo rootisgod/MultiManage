@@ -51,6 +51,7 @@ python -m venv .\venv-multimanage\
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 pip install pyinstaller
-pyinstaller -F -w -n multimanage multimanage.py
+pyinstaller -F -w -n multimanage --onefile --windowed --icon=MultiManage-Logo.ico multimanage.py
+.'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /dMyAppVersion=1.00) multimanage.iss
 ```
 
