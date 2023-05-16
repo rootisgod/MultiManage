@@ -28,7 +28,9 @@ instanceTableNumRows = 6
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
 
 def runCommandInTerminalWindow(cmd):
-    retval = os.system(f"start /wait cmd /c {cmd}")
+    if platform.system() in ("Windows"):
+        retval = os.system(f"start /wait cmd /c {cmd}")
+    # Do other OS's so it works for them all at some point     
     return retval
 
 def GetScreenHeight():
@@ -326,8 +328,11 @@ while True:
             f.close()
             commandline = commandline + f' --cloud-init ./{local_cloud_init_yaml_filename}'
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
-        # runCommand(cmd=(commandline), window=window)
-        retval = runCommandInTerminalWindow(commandline)
+        # For now, just push the windows command to a terminal window. Need to do the other OSs too
+        if platform.system() in ("Windows"):
+            retval = runCommandInTerminalWindow(commandline)
+        else:
+            runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE '{iname}'", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-INSTANCEINFO-':
