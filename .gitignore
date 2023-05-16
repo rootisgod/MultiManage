@@ -1,3 +1,11 @@
+demo_programs/
+Output/
+.idea/
+/.idea/
+venv-multimanage/
+venv/
+/cloud-init.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -127,5 +135,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/demo_programs/
-/Output/
