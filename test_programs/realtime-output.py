@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+import os
 import PySimpleGUI as sg
 
 def main():
@@ -18,7 +19,8 @@ def main():
             break
 
         if event == 'Run':                  # the two lines of code needed to get button and run command
-            runCommand(cmd=values['_IN_'], window=window)
+            # runCommand(cmd=values['_IN_'], window=window)
+            runCommandInConsole(cmd=values['_IN_'])
 
     window.Close()
 
@@ -34,6 +36,10 @@ def runCommand(cmd, timeout=None, window=None):
         window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     retval = p.wait(timeout)
     return (retval, output)                         # also return the output just for fun
+
+def runCommandInConsole(cmd):
+    retval = os.system(f"start cmd /c multipass launch")
+
 
 if __name__ == '__main__':
     main()
