@@ -17,6 +17,7 @@ import platform
 import textwrap
 import io
 import random
+import pathlib
 
 ######################################################################
 # Global Vars
@@ -26,11 +27,14 @@ selectedInstanceName = ''
 columnsToRead = ["Name", "State", "Ipv4", "Release", "Memory total", "Memory usage", "CPU(s)", "Load", "Disk usage", "Disk total"]
 instanceTableNumRows = 6
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
+local_mac_shell_script_name = '_mac_launch_script.sh'
 
 def runCommandInTerminalWindow(cmd):
     if platform.system() in ("Windows"):
         retval = os.system(f"start /wait cmd /c {cmd}")
-    # Do other OS's so it works for them all at some point     
+    if platform.system() in ("Darwin"):
+        retval = os.system(f'clear; echo "/usr/local/bin/{cmd}; kill -9 $$" > {local_mac_shell_script_name} ; chmod +x {local_mac_shell_script_name} ; open --wait-apps -a Terminal {local_mac_shell_script_name}; sleep 0.5; rm {local_mac_shell_script_name}; kill -9 $$')
+    # Do Linux next
     return retval
 
 def GetScreenHeight():
@@ -162,7 +166,7 @@ def runCommandInPopupWindow(cmd, timeout=None):
     popup_window.close()
     # return (retval, output)                         # also return the output just for fun
 
-def loadYAMLCloudInitFile(filePathAndName='./cloud-init/quick.yaml'):
+def loadYAMLCloudInitFile(filePathAndName):
     # https://stackoverflow.com/questions/67065794/how-to-open-a-file-upon-button-click-pysimplegui
     cloud_init_yaml = ''
     with open(filePathAndName, 'r') as file:
@@ -211,7 +215,6 @@ def new_window():
     btnDecreaseGUISize = sg.Button('-', disabled=False, size=2, key='-DECREASEGUISIZE-')
     btnIncreaseGUISize = sg.Button('+', disabled=False, size=2, key='-INCREASEGUISIZE-')
     outBox = sg.Output(size=(20,4), expand_x=True, visible=False, key='-OUTBOX-')
-    # btnExit = sg.Exit()
 
     # LAYOUT
     layout = [
@@ -265,6 +268,8 @@ if results[0]:
     instanceNames = [i['name'] for i in jsonData['list']]
     print(str(len(instanceNames)) + " instances: " + ", ".join(instanceNames))
 
+# To save the local cloud init file we generate on a run
+working_folder = pathlib.Path().resolve()
 ######################################################################
 # Look and Feel
 ######################################################################
@@ -277,7 +282,7 @@ icon_base64_png = 'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6
 screen_height = GetScreenHeight()
 if platform.system() in ("Darwin"):
     GUISize = 14
-if platform.system() in ("Windows"):
+elif platform.system() in ("Windows"):
     if screen_height < 800:
         GUISize = 10
     elif screen_height >= 800 and screen_height < 1024:
@@ -286,7 +291,7 @@ if platform.system() in ("Windows"):
         GUISize = 14
     elif screen_height > 1200:
         GUISize = 16
-if platform.system() in ("Linux"):
+elif platform.system() in ("Linux"):
     if screen_height < 800:
         GUISize = 8
     elif screen_height >= 800 and screen_height < 1024:
@@ -326,10 +331,12 @@ while True:
             f = open(f"{local_cloud_init_yaml_filename}", "w")
             f.write(values["-CLOUDINITYAML-"])
             f.close()
-            commandline = commandline + f' --cloud-init ./{local_cloud_init_yaml_filename}'
+            commandline = commandline + f' --cloud-init {working_folder}/{local_cloud_init_yaml_filename}'
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
         # For now, just push the windows command to a terminal window. Need to do the other OSs too
         if platform.system() in ("Windows"):
+            retval = runCommandInTerminalWindow(commandline)
+        if platform.system() in ("Darwin"):
             retval = runCommandInTerminalWindow(commandline)
         else:
             runCommand(cmd=(commandline), window=window)
@@ -431,7 +438,7 @@ while True:
                 UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR SHELL SOMEHOW. SET THE $SHELL VAR', window)
                 break
         elif platform.system() in ("Darwin"):
-            os.system(f'echo "/usr/local/bin/multipass shell {selectedInstanceName}" > shell.sh ; chmod +x shell.sh ; open -a Terminal shell.sh ; sleep 2; rm shell.sh')
+            os.system(f'echo "/usr/local/bin/multipass shell {selectedInstanceName}" > {local_mac_shell_script_name} ; chmod +x {local_mac_shell_script_name} ; open -a Terminal {local_mac_shell_script_name} ; sleep 2; rm {local_mac_shell_script_name}')
         else:
             sg.popup("Sorry, not supported on this OS: " + platform.system() + "\n\nOnly supported on\n- Windows\n- Linux\n- Mac")
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"SHELLED INTO INSTANCE: {selectedInstanceName}", window)
@@ -448,6 +455,9 @@ while True:
         window.close()
         window = new_window()
     if event == sg.WIN_CLOSED or event == 'Exit':
+        # Tidy up file if we created it
+        if platform.system() in ("Darwin"):
+            os.remove(f'{working_folder}/{local_mac_shell_script_name}')
         break
 
 ######################################################################
