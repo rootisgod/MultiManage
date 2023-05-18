@@ -336,7 +336,7 @@ while True:
         # For now, just push the windows command to a terminal window. Need to do the other OSs too
         if platform.system() in ("Windows"):
             retval = runCommandInTerminalWindow(commandline)
-        if platform.system() in ("Darwin"):
+        elif platform.system() in ("Darwin"):
             retval = runCommandInTerminalWindow(commandline)
         else:
             runCommand(cmd=(commandline), window=window)
@@ -352,7 +352,7 @@ while True:
             if ('Running' in data_selected):
                 running_instance_selected()
             # Stop Button
-            if ('Stopped' in data_selected):
+            elif ('Stopped' in data_selected):
                 stopped_instance_selected()
     # https://github.com/PySimpleGUI/PySimpleGUI/issues/5198
     if isinstance(event, tuple) and event[:2] == ('-INSTANCEINFO-', '+CLICKED+'):
