@@ -31,7 +31,7 @@ local_mac_shell_script_name = '_mac_launch_script.sh'
 
 def runCommandInTerminalWindow(cmd):
     if platform.system() in ("Windows"):
-        retval = os.system(f"start /wait cmd /c {cmd}")
+        retval = os.system(cmd)
     if platform.system() in ("Darwin"):
         retval = os.system(f'clear; echo "/usr/local/bin/{cmd}; kill -9 $$" > {local_mac_shell_script_name} ; chmod +x {local_mac_shell_script_name} ; open --wait-apps -a Terminal {local_mac_shell_script_name}; sleep 0.5; rm {local_mac_shell_script_name}; kill -9 $$')
     # Do Linux next
