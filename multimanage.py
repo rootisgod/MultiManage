@@ -29,19 +29,23 @@ instanceTableNumRows = 6
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
 local_mac_shell_script_name = '_mac_launch_script.sh'
 
+
 def runCommandInTerminalWindow(cmd):
     if platform.system() in ("Windows"):
         retval = os.system(cmd)
     if platform.system() in ("Darwin"):
         retval = os.system(f'clear; echo "/usr/local/bin/{cmd}; kill -9 $$" > {local_mac_shell_script_name} ; chmod +x {local_mac_shell_script_name} ; open --wait-apps -a Terminal {local_mac_shell_script_name}; sleep 0.5; rm {local_mac_shell_script_name}; kill -9 $$')
-    # Do Linux next
+    if platform.system() in ("Linux"):
+        retval = os.system(f"{get_linux_terminal()} -e '{get_linux_shell()} -c \"{cmd}\"'")
     return retval
+
 
 def GetScreenHeight():
     root = tk.Tk()
     root.withdraw()
     SCREEN_HEIGHT = root.winfo_screenheight()
     return SCREEN_HEIGHT
+
 
 ######################################################################
 # Global Functions and Data
@@ -57,8 +61,10 @@ def IsMultipassRunning():
         print('MULTIPASS NOT FOUND')
         return False
 
+
 def get_random_word():
     return random.choice(randomwords)
+
 
 def UpdateInstanceTableValues():
     # https://www.digitalocean.com/community/tutorials/update-rows-and-columns-python-pandas
@@ -88,6 +94,7 @@ def UpdateInstanceTableValues():
         instancesHeadersForTable = list(df.columns.values)
         instancesDataForTable    = list(data)
 
+
 def UpdateInstanceTableValuesAndTable(key):
     global instanceTableNumRows
     UpdateInstanceTableValues()
@@ -95,9 +102,11 @@ def UpdateInstanceTableValuesAndTable(key):
     # Fancy. Returns either rows count when less than 5, but settles on 5 once rows are over 5
     # tblInstances.update(values=instancesDataForTable, num_rows=min(len(instancesDataForTable), 5) )
 
+
 def UpdatetxtStatusBoxAndRefreshWindow(key, value, window):
     window[key].update(value)
     window.refresh()
+
 
 def running_instance_selected():
     window['-STARTBUTTON-'].update(disabled=True)
@@ -106,12 +115,14 @@ def running_instance_selected():
     window['-DELETEBUTTON-'].update(disabled=True)
     window['-SHELLINTOINSTANCEBUTTON-'].update(disabled=False)
 
+
 def stopped_instance_selected():
     window['-STARTBUTTON-'].update(disabled=False)
     window['-RESTARTBUTTON-'].update(disabled=True)
     window['-STOPBUTTON-'].update(disabled=True)
     window['-DELETEBUTTON-'].update(disabled=False)
     window['-SHELLINTOINSTANCEBUTTON-'].update(disabled=True)
+
 
 # This is a bit of a crutch. After a start/stop/restart/delete instance the table loses the row item selected
 # If we keep the selection we update the button status of it and remove this (but its more complicated to do)
@@ -122,11 +133,13 @@ def no_instance_selected():
     window['-DELETEBUTTON-'].update(disabled=True)
     window['-SHELLINTOINSTANCEBUTTON-'].update(disabled=True)
 
+
 def runCommand(cmd, timeout=None, window=None):
     if values["-SHOWCONSOLE-"]:
         runCommandInPopupWindow(cmd=cmd)
     elif not values["-SHOWCONSOLE-"]:
         runCommandSilently(cmd=cmd, window=window)
+
 
 # This function does the actual "running" of the command.  Also watches for any output. If found output is printed
 def runCommandSilently(cmd, timeout=None, window=None):
@@ -143,6 +156,7 @@ def runCommandSilently(cmd, timeout=None, window=None):
     if retval != 0:
         sg.popup('Error. I will improve the feedback later... It is probably your cloudinit file, or lack of RAM/DISK for chosen image that is invalid though.', keep_on_top=True)
     return (retval, output)                         # also return the output just for fun
+
 
 # This function does the actual "running" of the command in a popup window
 def runCommandInPopupWindow(cmd, timeout=None):
@@ -166,14 +180,16 @@ def runCommandInPopupWindow(cmd, timeout=None):
     popup_window.close()
     # return (retval, output)                         # also return the output just for fun
 
+
 def loadYAMLCloudInitFile(filePathAndName):
     # https://stackoverflow.com/questions/67065794/how-to-open-a-file-upon-button-click-pysimplegui
     cloud_init_yaml = ''
     with open(filePathAndName, 'r') as file:
         cloud_init_yaml = yaml.safe_load(file)
     with open(filePathAndName, "rt", encoding='utf-8') as file:
-        cloud_init_yaml= file.read()
+        cloud_init_yaml = file.read()
     return cloud_init_yaml
+
 
 # Had to create this to be able to resize the GUI. I'm not sure if this is the best way to do it, but it works.
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/4976
@@ -201,7 +217,7 @@ def new_window():
     btnCreateInstance = sg.Button('⚡ Create Instance', key="-CREATEINSTANCE-", expand_x=True)
     ### Table ###
     txtInstances = sg.Text('Instances')
-    tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE, right_click_menu=['&Right', ['Copy IPV4 Address', 'Copy Name']], enable_click_events=True)  # https://github.com/PySimpleGUI/PySimpleGUI/issues/5198
+    tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE, enable_click_events=True)  # https://github.com/PySimpleGUI/PySimpleGUI/issues/5198
     btnStartInstance  = sg.Button('⏵ Start Instance',  disabled=True, key='-STARTBUTTON-',  expand_x=True)
     btnRestartInstance  = sg.Button('↻ Restart Instance',  disabled=True, key='-RESTARTBUTTON-',  expand_x=True)
     btnStopInstance   = sg.Button('⏹ Stop Instance',   disabled=True, key='-STOPBUTTON-',   expand_x=True)
@@ -249,6 +265,7 @@ def new_window():
     window = sg.Window("MultiManage", icon=icon_base64_png).Layout(layout)
     return window
 
+
 ######################################################################
 # Pre Launch Check and Data Initialization
 ######################################################################
@@ -283,18 +300,18 @@ screen_height = GetScreenHeight()
 if platform.system() in ("Darwin"):
     GUISize = 14
 elif platform.system() in ("Windows"):
-    if screen_height < 800:
+    if screen_height < 960:
         GUISize = 10
-    elif screen_height >= 800 and screen_height < 1024:
+    elif screen_height >= 960 and screen_height < 1024:
         GUISize = 12
     elif screen_height >= 1024 and screen_height <= 1200:
         GUISize = 14
     elif screen_height > 1200:
         GUISize = 16
 elif platform.system() in ("Linux"):
-    if screen_height < 800:
+    if screen_height < 960:
         GUISize = 8
-    elif screen_height >= 800 and screen_height < 1024:
+    elif screen_height >= 960 and screen_height < 1024:
         GUISize = 10
     elif screen_height >= 1024 and screen_height <= 1200:
         GUISize = 12
@@ -307,6 +324,29 @@ else:
 sg.set_options(font=f'Default {GUISize}')
 sg.theme('DarkGrey13')
 window = new_window()
+
+
+def get_linux_terminal():
+    global user_terminal
+    user_terminal = 'gnome-terminal'
+    # Naively try and see if the BASH command returns characters with the terminal path
+    if len(subprocess.check_output(f'whereis gnome-terminal', shell=True)) > 20:
+        user_terminal = 'gnome-terminal'
+    elif len(subprocess.check_output(f'whereis konsole', shell=True)) > 20:
+        user_terminal = 'konsole'
+    elif len(subprocess.check_output(f'whereis xfce4-terminal', shell=True)) > 20:
+        user_terminal = 'xfce4-terminal'
+    else:
+        user_terminal = 'gnome-terminal'
+    return user_terminal
+
+def get_linux_shell():
+    global user_shell
+    user_shell = os.getenv('SHELL')
+    if user_shell is None:
+        user_shell = '/bin/bash'
+    return user_shell
+
 
 ######################################################################
 # Event Loop
@@ -338,7 +378,13 @@ while True:
             retval = runCommandInTerminalWindow(commandline)
         elif platform.system() in ("Darwin"):
             retval = runCommandInTerminalWindow(commandline)
+        elif platform.system() in ("Linux"):
+            try:
+                retval = runCommandInTerminalWindow(commandline)
+            except:
+                UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR LINUX TERMINAL SOMEHOW', window)
         else:
+            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR OS SOMEHOW - TRYING LAST RESORT', window)
             runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE '{iname}'", window)
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
@@ -415,23 +461,10 @@ while True:
         elif platform.system() in ("Linux"):
             # Gnome and KDE. Not sure if we need others
             try:
-                user_shell = os.getenv('SHELL')
-                user_terminal = 'gnome-terminal'
-                if user_shell is None:
-                    user_shell = '/bin/bash'
-                # Naively try and see if the BASH command returns characters with the terminal path
-                if len(subprocess.check_output(f'whereis gnome-terminal', shell=True)) > 20:
-                    user_terminal = 'gnome-terminal'
-                elif len(subprocess.check_output(f'whereis konsole', shell=True)) > 20:
-                    user_terminal = 'konsole'
-                elif len(subprocess.check_output(f'whereis xfce4-terminal', shell=True)) > 20:
-                    user_terminal = 'xfce4-terminal'
-                else:
-                    user_terminal = 'gnome-terminal'
-                # Run the command
+                user_terminal = get_linux_terminal()
+                user_shell = get_linux_shell()
                 try:
                     os.system(f"{user_terminal} -e '{user_shell} -c \"multipass shell {selectedInstanceName}\"'")
-                    subprocess.check_output('whereis gnome-terminal', shell=True)
                 except:
                     UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR TERMINAL SOMEHOW', window)
             except:
