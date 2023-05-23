@@ -216,13 +216,13 @@ def new_window():
     txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth)
     sliDiskGB = sg.Slider((0, 256), 8, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
     cbUseCloudInit = sg.CBox(textwrap.fill('Run Cloud Init File?', labeltextwidth), default=True, enable_events=True, key='-USECLOUDINIT-')
-    txtCloudInitFile = sg.Text(textwrap.fill('Import\nFile?', labeltextwidth),font=(None, 14, "underline"), tooltip=f'Click for Cloud Init Reference Guide: {cloud_init_examples_url}', size=labeltextwidth, key='-CLOUDINITFILEPATH-', enable_events=True)
+    txtCloudInitFile = sg.Text(textwrap.fill('Import\nFile?', labeltextwidth),font=(None, GUISize, "underline"), tooltip=f'Click for Cloud Init Reference Guide: {cloud_init_examples_url}', size=labeltextwidth, key='-CLOUDINITFILEPATH-', enable_events=True)
     inpCloudInitFile = sg.Input(expand_x=True, key='-CLOUDINITINPUT-')
     btnLoadCloudInitFile = sg.Button('Browse', key='-LOADCLOUDINITFILE-', expand_x=True)
     mulCloudInitYAML = sg.Multiline(default_text='package_update: true\npackage_upgrade: true', size=(50,8),  expand_x=True, key='-CLOUDINITYAML-')
     btnCreateInstance = sg.Button('⚡ Create Instance', key="-CREATEINSTANCE-", expand_x=True, tooltip='Create the instance described above (launches in new console window)')
     ### Table ###
-    txtInstances = sg.Text('Instances')
+    txtInstances = sg.Text('Instances', justification='center', expand_x=True)
     tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE, enable_click_events=True)  # https://github.com/PySimpleGUI/PySimpleGUI/issues/5198
     btnStartInstance  = sg.Button('⏵ Start Instance',  disabled=True, key='-STARTBUTTON-',  expand_x=True)
     btnRestartInstance  = sg.Button('↻ Restart Instance',  disabled=True, key='-RESTARTBUTTON-',  expand_x=True)
@@ -256,7 +256,7 @@ def new_window():
         ],
         ### Manage Instances ###
         [
-            [txtInstances],
+            # [txtInstances],
             [tblInstances],
             [[btnStartInstance, btnRestartInstance, btnStopInstance, btnDeleteInstance, btnShellIntoInstance,btnRefreshTable],],
         ],
