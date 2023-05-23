@@ -36,7 +36,11 @@ def runCommandInTerminalWindow(cmd):
     if platform.system() in ("Darwin"):
         retval = os.system(f'clear; echo "/usr/local/bin/{cmd}; kill -9 $$" > {local_mac_shell_script_name} ; chmod +x {local_mac_shell_script_name} ; open --wait-apps -a Terminal {local_mac_shell_script_name}; sleep 0.5; rm {local_mac_shell_script_name}; kill -9 $$')
     if platform.system() in ("Linux"):
-        retval = os.system(f"{get_linux_terminal()} -e '{get_linux_shell()} -c \"{cmd}\"'")
+        terminal_command = get_linux_terminal()
+        # Gnome terminal needs a wait command added
+        if terminal_command == 'gnome-terminal': 
+            terminal_command = f"{terminal_command} --wait"
+        retval = os.system(f"{terminal_command} -e '{get_linux_shell()} -c \"{cmd}\"'")
     return retval
 
 
