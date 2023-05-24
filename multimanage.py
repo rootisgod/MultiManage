@@ -30,6 +30,7 @@ instanceTableNumRows = 6
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
 local_mac_shell_script_name = '_mac_launch_script.sh'
 cloud_init_examples_url = 'https://cloudinit.readthedocs.io/en/latest/reference/examples.html'
+cloud_init_examples_url = 'https://cloudinit.readthedocs.io/en/latest/reference/examples.html'
 
 
 def runCommandInTerminalWindow(cmd):
