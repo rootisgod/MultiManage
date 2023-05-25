@@ -6,10 +6,10 @@ name: Create Packages From Push to Main
 on:
     workflow_dispatch:
     push:
-        # tags:
-        #     - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
         branches:
             - main
+        paths-ignore:
+            - '**.md'
 
 jobs:
     createrelease:
