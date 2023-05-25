@@ -37,7 +37,7 @@ The system should be quite intuitive. You can either create an instance by;
  - Provide a name (if no name is supplied one will be generated for you)
  - An image type
  - CPU/RAM/DISK Requirements
- - Pass a cloud-init script to optionally run it. An apt update/upgrade is provided as little quality of life feature
+ - Pass a cloud-init script to optionally run it. An apt update/upgrade is provided as a little quality of life feature
  - Then hit 'Create Instance'. It will appear in the table below
 
 Or, manage existing instances
@@ -60,7 +60,7 @@ It's not perfect.
  - My code is probbaly horrendous. I write powershell scripts on ocassion and im sure this code is not pythonic or all that thought out. It's just me solving my own problem.
  - Please be careful when deleting stopped instances. You will be given a chance to purge the instance to reclaim disk space, but the command is GLOBAL. All 'deleted' instances will become purged and irrecoverable.
  - Unexpected errors likely just crash the program...
- - Creating a new instance is the most time-consuming part, if it hangs excessivelt without feedback assume something is actually happening, but give it time.
+ - Creating a new instance is the most time-consuming part, if it hangs excessively without feedback assume something is actually happening, but give it time.
  - If it crashes, it may be because a column value changed during initialization or such like. Sorry, just reload
  - I don't check the multipass version, just that the 'multipass version' command returns a string I search for. Can try improve later. The minimum Multipass version isn't a joke as the columns required chaged in version 1.11.1
  - It gets quite wide when you have a started instance, sorry, not sure what I can do other than make the window dimensions resizable
@@ -75,4 +75,4 @@ There are still a few useful features to add. No promises on any of these though
  - Allow resizing of existing instances
  - Allow the user to choose the network the instance uses
  - Maybe some predefined cloud init templates/software features to choose (docker, snapd etc...)
- - Transfer file dialog window to simplify
+ - Transfer file dialog window to simplify moving files to and from an instance
