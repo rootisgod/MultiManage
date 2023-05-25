@@ -23,6 +23,10 @@ But, please use, hopefully somebody finds it useful!
 
 ## Documentation
 
+### Requirements
+
+Tested on Windows, Mac (only Apple Silicon) and Linux with Gnome, KDE and XFCE4. If multipass can run at the command line you should be good.
+
 ### Goals
 
 This GUI is intended to try and make managing your instances that bit easier. Experience with the command line multipass utility is helpful, but not required.
@@ -57,12 +61,12 @@ There are a few nice features that are not immediately obvious
 
 It's not perfect. 
 
- - My code is probbaly horrendous. I write powershell scripts on ocassion and im sure this code is not pythonic or all that thought out. It's just me solving my own problem.
+ - My code is probably horrendous. I write powershell scripts on ocassion and im sure this code is not pythonic or all that thought out. It's just me solving my own problem.
  - Please be careful when deleting stopped instances. You will be given a chance to purge the instance to reclaim disk space, but the command is GLOBAL. All 'deleted' instances will become purged and irrecoverable.
  - Unexpected errors likely just crash the program...
  - Creating a new instance is the most time-consuming part, if it hangs excessively without feedback assume something is actually happening, but give it time.
  - If it crashes, it may be because a column value changed during initialization or such like. Sorry, just reload
- - I don't check the multipass version, just that the 'multipass version' command returns a string I search for. Can try improve later. The minimum Multipass version isn't a joke as the columns required chaged in version 1.11.1
+ - I don't check that multipass actually works before running the GUI, just that the multipass version command returns a string that has 'Available commands' in it. Can try improve later. The minimum Multipass version isn't a joke also, as the columns are hard coded and they changed in version 1.11.1. SO thats the minimum.
  - It gets quite wide when you have a started instance, sorry, not sure what I can do other than make the window dimensions resizable
  - The window dimensions are not manually resizable
  - A new Multipass release could break it
