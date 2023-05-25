@@ -57,6 +57,7 @@ There are a few nice features that are not immediately obvious
 
 It's not perfect. 
 
+ - My code is probbaly horrendous. I write powershell scripts on ocassion and im sure this code is not pythonic or all that thought out. It's just me solving my own problem.
  - Please be careful when deleting stopped instances. You will be given a chance to purge the instance to reclaim disk space, but the command is GLOBAL. All 'deleted' instances will become purged and irrecoverable.
  - Unexpected errors likely just crash the program...
  - Creating a new instance is the most time-consuming part, if it hangs excessivelt without feedback assume something is actually happening, but give it time.
