@@ -15,11 +15,23 @@ architectures:
 apps:
   multimanage:
     command: bin/multimanage
-    plugs: [home, network, network-bind]
+    plugs:
+      - multipass-support
+      - x11
 
 parts:
   multimanage:
-    plugin: python
-    python-requirements:
-      - requirements.txt
-    source: https://github.com/rootisgod/MultiManage.git
+    plugin: dump
+    #source: https://github.com/rootisgod/MultiManage/releases/latest/download/Linux-multimanage.zip
+    source: https://stgrootisgod.blob.core.windows.net/multimanage/mm.zip
+    stage-snaps:
+      - multipass/latest/stable
+#      1.11.0
+    stage-packages:
+      - libxcb-dri3-0
+#    plugin: python
+#    python-packages:
+#      - pysimplegui
+#    python-requirements:
+#      - requirements.txt
+#    source: https://github.com/rootisgod/MultiManage.git

@@ -53,6 +53,11 @@ def GetScreenHeight():
     SCREEN_HEIGHT = root.winfo_screenheight()
     return SCREEN_HEIGHT
 
+def GetMultipassCommand():
+    multipass_command = 'multipass'
+    if platform.system() in ("Linux"):
+        multipass_command = '/var/lib/snapd/snap/bin/multipass'
+    return multipass_command
 
 ######################################################################
 # Global Functions and Data
@@ -60,7 +65,7 @@ def GetScreenHeight():
 def IsMultipassRunning():
     global instancesHeadersForTable
     global instancesDataForTable
-    results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+    results = sg.execute_get_results(sg.execute_command_subprocess(GetMultipassCommand(), pipe_output=True, wait=True, stdin=subprocess.PIPE))
     if 'Available commands' in results[0]:
         print('MULTIPASS FOUND')
         return True
