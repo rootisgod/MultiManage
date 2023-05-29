@@ -21,17 +21,17 @@ apps:
 
 parts:
   multimanage:
-    plugin: dump
-    #source: https://github.com/rootisgod/MultiManage/releases/latest/download/Linux-multimanage.zip
-    source: snap_binary.zip
-    stage-snaps:
-      - multipass/latest/stable
-    # 1.11.0
-    stage-packages:
-      - libxcb-dri3-0
-#    plugin: python
-#    python-packages:
-#      - pysimplegui
+#    Just wont work
+# ImportError: /snap/multimanage/x1/lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.36' not found (required by /tmp/_MEIeTgFXS/libexpat.so.1)
+#    source: snap_binary.zip
+#    stage-snaps:
+#      - multipass/latest/stable
+#    stage-packages:
+#      - libxcb-dri3-0
+#      - libc6
+
+    plugin: python
 #    python-requirements:
 #      - requirements.txt
 #    source: https://github.com/rootisgod/MultiManage.git
+    source: ./src
