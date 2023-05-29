@@ -23,10 +23,10 @@ parts:
   multimanage:
     plugin: dump
     #source: https://github.com/rootisgod/MultiManage/releases/latest/download/Linux-multimanage.zip
-    source: https://stgrootisgod.blob.core.windows.net/multimanage/mm.zip
+    source: snap_binary.zip
     stage-snaps:
       - multipass/latest/stable
-#      1.11.0
+    # 1.11.0
     stage-packages:
       - libxcb-dri3-0
 #    plugin: python

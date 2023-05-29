@@ -55,3 +55,18 @@ pyinstaller -F -w -n multimanage --onefile --windowed --icon=MultiManage-Logo.ic
 .'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' /dMyAppVersion=1.00) multimanage.iss
 ```
 
+## Snaps
+
+Build a snap package
+```bash
+./build_with_pyinstaller_and_create_a_snap.sh
+```
+
+Install and test
+
+```bash
+sudo snap remove multimanage
+sudo snap install multimanage_0.1_amd64.snap  --devmode --dangerous
+```
+
+

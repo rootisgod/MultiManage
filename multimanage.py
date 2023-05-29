@@ -55,6 +55,7 @@ def GetScreenHeight():
 
 def GetMultipassCommand():
     multipass_command = 'multipass'
+    # Has to be installed via snap (I hope). Windows and Mac can run snap too but likelyhood is low...
     if platform.system() in ("Linux"):
         multipass_command = '/var/lib/snapd/snap/bin/multipass'
     return multipass_command
@@ -83,7 +84,7 @@ def UpdateInstanceTableValues():
     global columnsToRead
     global instancesHeadersForTable
     global instancesDataForTable
-    results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'info', '--all', '--format', 'csv', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+    results = sg.execute_get_results(sg.execute_command_subprocess(GetMultipassCommand(), 'info', '--all', '--format', 'csv', pipe_output=True, wait=True, stdin=subprocess.PIPE))
     if results[0]:
         df = pd.read_csv(io.StringIO(results[0]), usecols = columnsToRead)
         # Massive the data a bit to remove NaNs
@@ -282,17 +283,18 @@ def new_window():
 ######################################################################
 # Pre Launch Check and Data Initialization
 ######################################################################
+multipass_command = GetMultipassCommand()
 if not IsMultipassRunning():
     import PySimpleGUI as psgmultipassnotfound
     psgmultipassnotfound.popup("Multipass not found or is not running.\nPlease ensure the command\n\n  multipass version\n\nworks from the command line first.")
     sys.exit()
 
-results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'find', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+results = sg.execute_get_results(sg.execute_command_subprocess(GetMultipassCommand(), 'find', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
 if results[0]:
     jsonData = json.loads(results[0])
     instanceTypes = list(jsonData['images'].keys())
 
-results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'list', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+results = sg.execute_get_results(sg.execute_command_subprocess(GetMultipassCommand(), 'list', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
 if results[0]:
     jsonData = json.loads(results[0])
     instanceNames = [i['name'] for i in jsonData['list']]
@@ -378,7 +380,7 @@ while True:
         idisk = str(int((values['-OUTPUT-DISK-'])*1024*1024*1024))
         if iname == '':
             iname = get_random_word() + "-" + get_random_word()
-        commandline = (f'multipass launch {itype} -v -n {iname} -c {icpus} -m {iram} -d {idisk}')
+        commandline = (f'{multipass_command} launch {itype} -v -n {iname} -c {icpus} -m {iram} -d {idisk}')
         if values["-USECLOUDINIT-"] == True:
             f = open(f"{local_cloud_init_yaml_filename}", "w")
             f.write(values["-CLOUDINITYAML-"])
@@ -433,32 +435,32 @@ while True:
             window['-USECLOUDINIT-'].update(True)
     if event == '-STARTBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTING INSTANCE: {selectedInstanceName}", window)
-        commandline = (f'multipass start {selectedInstanceName} -v')
+        commandline = (f'{multipass_command} start {selectedInstanceName} -v')
         runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STARTED INSTANCE: {selectedInstanceName}", window)
         no_instance_selected()
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-RESTARTBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"RESTARTING INSTANCE: {selectedInstanceName}", window)
-        commandline = (f'multipass restart {selectedInstanceName} -v')
+        commandline = (f'{multipass_command} restart {selectedInstanceName} -v')
         runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"RESTARTED INSTANCE: {selectedInstanceName}", window)
         no_instance_selected()
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-STOPBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPING INSTANCE: {selectedInstanceName}", window)
-        commandline = (f'multipass stop {selectedInstanceName} -v')
+        commandline = (f'{multipass_command} stop {selectedInstanceName} -v')
         runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"STOPPED INSTANCE: {selectedInstanceName}", window)
         no_instance_selected()
         UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-DELETEBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETING INSTANCE: {selectedInstanceName} and PURGING ALL", window)
-        commandline = (f'multipass delete {selectedInstanceName} -v')
+        commandline = (f'{multipass_command} delete {selectedInstanceName} -v')
         runCommand(cmd=(commandline), window=window)
         purgeAll = sg.popup_yes_no('Purge All Deleted Instances?', f'Deleted instances are recoverable if not purged.\nTo recover a deleted instance use the multipass CLI command below\n \n  multipass recover {selectedInstanceName}\n\n')
         if purgeAll == 'Yes':
-            commandline = (f'multipass purge -v')
+            commandline = (f'{multipass_command} purge -v')
             runCommand(cmd=(commandline), window=window)
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"DELETED INSTANCE: {selectedInstanceName} and PURGED ALL", window)
         no_instance_selected()
@@ -469,21 +471,21 @@ while True:
     if event == '-SHELLINTOINSTANCEBUTTON-':
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"SHELLING INTO INSTANCE: {selectedInstanceName}", window)
         if platform.system() in ("Windows"):
-            os.system(f"start cmd /c multipass shell {selectedInstanceName}")
+            os.system(f"start cmd /c {multipass_command} shell {selectedInstanceName}")
         elif platform.system() in ("Linux"):
             # Gnome and KDE. Not sure if we need others
             try:
                 user_terminal = get_linux_terminal()
                 user_shell = get_linux_shell()
                 try:
-                    os.system(f"{user_terminal} -e '{user_shell} -c \"multipass shell {selectedInstanceName}\"'")
+                    os.system(f"{user_terminal} -e '{user_shell} -c \"{multipass_command} shell {selectedInstanceName}\"'")
                 except:
                     UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR TERMINAL SOMEHOW', window)
             except:
                 UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR SHELL SOMEHOW. SET THE $SHELL VAR', window)
                 break
         elif platform.system() in ("Darwin"):
-            os.system(f'echo "/usr/local/bin/multipass shell {selectedInstanceName}" > {local_mac_shell_script_name} ; chmod +x {local_mac_shell_script_name} ; open -a Terminal {local_mac_shell_script_name} ; sleep 2; rm {local_mac_shell_script_name}')
+            os.system(f'echo "/usr/local/bin/{multipass_command} shell {selectedInstanceName}" > {local_mac_shell_script_name} ; chmod +x {local_mac_shell_script_name} ; open -a Terminal {local_mac_shell_script_name} ; sleep 2; rm {local_mac_shell_script_name}')
         else:
             sg.popup("Sorry, not supported on this OS: " + platform.system() + "\n\nOnly supported on\n- Windows\n- Linux\n- Mac")
         UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"SHELLED INTO INSTANCE: {selectedInstanceName}", window)
