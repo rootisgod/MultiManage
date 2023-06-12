@@ -170,7 +170,7 @@ def runCommandInPopupWindow(cmd, timeout=None):
     popup_layout = [[sg.Output(size=(60,4), key='-OUT-')]]
     popup_window = sg.Window('Running Actions. Please wait...', popup_layout, finalize=True, disable_close=True, keep_on_top=True)
 
-    print(f'\n      COMMAND: "{cmd}"')
+    # print(f'\n      COMMAND: "{cmd}"')
     popup_window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     output = ''
@@ -178,7 +178,7 @@ def runCommandInPopupWindow(cmd, timeout=None):
         line = line.decode(errors='replace' if (sys.version_info) < (3, 5) else 'backslashreplace').rstrip()
         line = line.strip()
         output += line
-        print(line)
+        # print(line)
         popup_window['-OUT-'].update(line)
         popup_window.Refresh() if window else None        # yes, a 1-line if, so shoot me
     retval = p.wait(timeout)
@@ -282,16 +282,21 @@ if not IsMultipassRunning():
     psgmultipassnotfound.popup("Multipass not found or is not running.\nPlease ensure the command\n\n  multipass version\n\nworks from the command line first.")
     sys.exit()
 
+# Get the instance we can launch
 results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'find', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
 if results[0]:
     jsonData = json.loads(results[0])
-    instanceTypes = list(jsonData['images'].keys())
+    # Multipass 1.12 has a new blueprints section for no official images
+    if "blueprints" in jsonData:
+        instanceTypes = list(jsonData['images'].keys()) + list(jsonData['blueprints'].keys())
+    else:
+        instanceTypes = list(jsonData['images'].keys())
 
+# Get the current instances multipass is managing
 results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'list', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
 if results[0]:
     jsonData = json.loads(results[0])
     instanceNames = [i['name'] for i in jsonData['list']]
-    print(str(len(instanceNames)) + " instances: " + ", ".join(instanceNames))
 
 # To save the local cloud init file we generate on a run
 working_folder = pathlib.Path().resolve()
@@ -360,7 +365,7 @@ def get_linux_shell():
 ######################################################################
 while True:
     event, values = window.read()
-    print(event, values)  # Useful for debugging
+    # print(event, values)  # Useful for debugging
 
     # MAIN GUI CODE
     if event == '-CREATEINSTANCE-':
