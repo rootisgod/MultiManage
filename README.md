@@ -57,6 +57,18 @@ There are a few nice features that are not immediately obvious
  - If you make a change to the multipass system outside of the GUI, click 'Refresh Table' to update the instance info
  - Make the window bigger or smaller with the + and - options at the bottom
 
+#### Config File
+
+You can specify a config file to set some defaults. Example below of all options
+
+```ini
+[multimanage]
+cloud_init_template_folder: ~/cloud-init-templates
+cloud_init_default_text:
+    package_update: true
+    package_upgrade: true
+```
+
 ### Gotchas
 
 It's not perfect. 
@@ -75,7 +87,6 @@ It's not perfect.
 
 There are still a few useful features to add. No promises on any of these though! Feel free to PR me though. The build guide is in the Documents folder.
 
- - Allow mounting of a local folder to the instance
  - Allow resizing of existing instances
  - Allow the user to choose the network the instance uses
  - Maybe some predefined cloud init templates/software features to choose (docker, snapd etc...)

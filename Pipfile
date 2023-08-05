@@ -9,6 +9,7 @@ coverage = "*"
 pyyaml = "6"
 numpy = "1.24"
 pandas = "2"
+configparser = "6"
 
 [dev-packages]
 
