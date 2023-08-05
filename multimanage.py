@@ -19,6 +19,7 @@ import textwrap
 import io
 import random
 import pathlib
+import configparser
 
 ######################################################################
 # Global Vars
@@ -30,6 +31,12 @@ instanceTableNumRows = 8
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
 local_mac_shell_script_name = '_mac_launch_script.sh'
 cloud_init_examples_url = 'https://cloudinit.readthedocs.io/en/latest/reference/examples.html'
+# muktimanage.cnf Details
+multimanage_config_file_location = './'
+multimanage_config_file_name = 'multimanage.cnf'
+# muktimanage.cnf Default Config Vars
+cloud_init_template_folder = './'
+cloud_init_default_text = 'package_update: true\npackage_upgrade: true'
 
 def runCommandInTerminalWindow(cmd):
     if platform.system() in ("Windows"):
@@ -70,6 +77,13 @@ def IsMultipassRunning():
 def get_random_word():
     return random.choice(randomwords)
 
+def read_config_file():
+    config = configparser.ConfigParser()
+    config.read(f"{multimanage_config_file_location}{multimanage_config_file_name}")
+    global cloud_init_template_folder
+    global cloud_init_default_text
+    cloud_init_template_folder = config.get('multimanage', 'cloud_init_template_folder')
+    cloud_init_default_text = config.get('multimanage', 'cloud_init_default_text')
 
 def UpdateInstanceTableValues():
     # https://www.digitalocean.com/community/tutorials/update-rows-and-columns-python-pandas
@@ -223,12 +237,13 @@ def new_window():
     txtMountFolder = sg.Text('Mount Folder?', size=labeltextwidth, tooltip='Moungts folder to /multipass inside instance')
     inpMountFolder = sg.Input(expand_x=True, key='-INPMOUNTFOLDER-')
     btnMountFolder = sg.Button('Browse', key='-MOUNTFOLDERSOURCE-', expand_x=True)
-    #
+    # Cloud Init
     cbUseCloudInit = sg.CBox(textwrap.fill('Run Cloud Init File?', labeltextwidth), default=True, enable_events=True, key='-USECLOUDINIT-')
     txtCloudInitFile = sg.Text(textwrap.fill('Import\nFile?', labeltextwidth),font=(None, GUISize, "underline"), tooltip=f'Click for Cloud Init Reference Guide: {cloud_init_examples_url}', size=labeltextwidth, key='-CLOUDINITFILEPATH-', enable_events=True)
     inpCloudInitFile = sg.Input(expand_x=True, key='-CLOUDINITINPUT-')
     btnLoadCloudInitFile = sg.Button('Browse', key='-LOADCLOUDINITFILE-', expand_x=True)
-    mulCloudInitYAML = sg.Multiline(default_text='package_update: true\npackage_upgrade: true', size=(50,14),  expand_x=True, key='-CLOUDINITYAML-')
+    mulCloudInitYAML = sg.Multiline(default_text=cloud_init_default_text, size=(50,14),  expand_x=True, key='-CLOUDINITYAML-')
+    # Create Instance Button
     btnCreateInstance = sg.Button('⚡ Create Instance', key="-CREATEINSTANCE-", expand_x=True, tooltip='Create the instance described above (launches in new console window)')
     ### Table ###
     tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE, enable_click_events=True)  # https://github.com/PySimpleGUI/PySimpleGUI/issues/5198
@@ -337,6 +352,10 @@ elif platform.system() in ("Linux"):
 else:
     GUISize = 10
 
+# Load values from config file if it exists
+if os.path.isfile(f'{multimanage_config_file_location}{multimanage_config_file_name}'):
+    read_config_file()
+
 # Setup and Create Window
 sg.set_options(font=f'Default {GUISize}')
 sg.theme('DarkGrey13')
@@ -441,7 +460,7 @@ while True:
                 else:
                     UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CANNOT COPY '{copiedValue}' TO CLIPBOARD. UNKNOWN REASON", window)
     if event == '-LOADCLOUDINITFILE-':
-        chosen_file = (sg.popup_get_file('Which CloudInit File?', multiple_files=False, no_window=True, keep_on_top=True, file_types=((('YAML Files', '*.yml, *.yaml'),))))
+        chosen_file = (sg.popup_get_file('Which CloudInit File?', default_path=cloud_init_template_folder, multiple_files=False, no_window=True, keep_on_top=True, file_types=((('YAML Files', '*.yml, *.yaml'),))))
         if chosen_file != '':
             window['-CLOUDINITINPUT-'].update(chosen_file)
             window['-CLOUDINITYAML-'].update(loadYAMLCloudInitFile(filePathAndName=chosen_file))
