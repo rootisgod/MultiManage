@@ -30,8 +30,6 @@ instanceTableNumRows = 6
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
 local_mac_shell_script_name = '_mac_launch_script.sh'
 cloud_init_examples_url = 'https://cloudinit.readthedocs.io/en/latest/reference/examples.html'
-cloud_init_examples_url = 'https://cloudinit.readthedocs.io/en/latest/reference/examples.html'
-
 
 def runCommandInTerminalWindow(cmd):
     if platform.system() in ("Windows"):
@@ -216,6 +214,12 @@ def new_window():
     sliRAM = sg.Slider((0, 16384), 1024, 256, tick_interval=2048, orientation="h", key="-OUTPUT-RAM-", expand_x=True)
     txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth)
     sliDiskGB = sg.Slider((0, 256), 8, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
+    # Mount Disk
+    txtMountFolder = sg.Text('Mount Folder', size=labeltextwidth)
+    cbMountFolder = sg.CBox('Mount Folder?', default=False, enable_events=True, key='-MOUNTFOLDER-', visible=True)
+    inpMountFolder = sg.Input(expand_x=True, key='-INPMOUNTFOLDER-')
+    btnMountFolder = sg.Button('Browse', key='-MOUNTFOLDERSOURCE-', expand_x=True)
+    #
     cbUseCloudInit = sg.CBox(textwrap.fill('Run Cloud Init File?', labeltextwidth), default=True, enable_events=True, key='-USECLOUDINIT-')
     txtCloudInitFile = sg.Text(textwrap.fill('Import\nFile?', labeltextwidth),font=(None, GUISize, "underline"), tooltip=f'Click for Cloud Init Reference Guide: {cloud_init_examples_url}', size=labeltextwidth, key='-CLOUDINITFILEPATH-', enable_events=True)
     inpCloudInitFile = sg.Input(expand_x=True, key='-CLOUDINITINPUT-')
@@ -249,6 +253,7 @@ def new_window():
                 [txtCPUCores, sliCPUCores],
                 [txtRAM, sliRAM],
                 [txtDiskGB, sliDiskGB],
+                [txtMountFolder, inpMountFolder, btnMountFolder], #, txtMountFolder],
                 [txtCloudInitFile, inpCloudInitFile, btnLoadCloudInitFile],
                 [cbUseCloudInit, mulCloudInitYAML],
                 [btnCreateInstance],
@@ -369,6 +374,7 @@ while True:
 
     # MAIN GUI CODE
     if event == '-CREATEINSTANCE-':
+        stop_creation = False
         itype = values['-INSTANCETYPE-']
         if itype == '':
             itype = '22.04'
@@ -384,22 +390,31 @@ while True:
             f.write(values["-CLOUDINITYAML-"])
             f.close()
             commandline = commandline + f' --cloud-init {working_folder}/{local_cloud_init_yaml_filename}'
-        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
-        # For now, just push the windows command to a terminal window. Need to do the other OSs too
-        if platform.system() in ("Windows"):
-            retval = runCommandInTerminalWindow(commandline)
-        elif platform.system() in ("Darwin"):
-            retval = runCommandInTerminalWindow(commandline)
-        elif platform.system() in ("Linux"):
-            try:
+        if values['-INPMOUNTFOLDER-'] != '':
+            mountFolderValue = (values['-INPMOUNTFOLDER-']).strip()
+            # Seems a path with a tilde ~ doesnt work. Maybetry fix later...
+            if os.path.isdir(mountFolderValue) == False:
+                sg.Popup(f'Folder "{mountFolderValue}" Does Not Exist. Cannot Mount')
+                stop_creation = True
+            else:
+                commandline = commandline + f' --mount {mountFolderValue}:/multipass'
+        if stop_creation != True:
+            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
+            # For now, just push the windows command to a terminal window. Need to do the other OSs too
+            if platform.system() in ("Windows"):
                 retval = runCommandInTerminalWindow(commandline)
-            except:
-                UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR LINUX TERMINAL SOMEHOW', window)
-        else:
-            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR OS SOMEHOW - TRYING LAST RESORT', window)
-            runCommand(cmd=(commandline), window=window)
-        UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE '{iname}'", window)
-        UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
+            elif platform.system() in ("Darwin"):
+                retval = runCommandInTerminalWindow(commandline)
+            elif platform.system() in ("Linux"):
+                try:
+                    retval = runCommandInTerminalWindow(commandline)
+                except:
+                    UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR LINUX TERMINAL SOMEHOW', window)
+            else:
+                UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', 'COULD NOT FIND YOUR OS SOMEHOW - TRYING LAST RESORT', window)
+                runCommand(cmd=(commandline), window=window)
+            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATED INSTANCE '{iname}'", window)
+            UpdateInstanceTableValuesAndTable('-INSTANCEINFO-')
     if event == '-INSTANCEINFO-':
         selection = values[event]
         if selection:
