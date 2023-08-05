@@ -23,10 +23,10 @@ import pathlib
 ######################################################################
 # Global Vars
 ######################################################################
-randomwords = ["time", "year", "people", "way", "day", "man", "thing", "woman", "life", "child", "world", "school", "state", "family", "student", "group", "country", "problem", "hand", "part", "place", "case", "week", "company", "system", "program", "question", "work", "government", "number", "night", "point", "home", "water", "room", "mother", "area", "money", "story", "fact", "month", "lot", "right", "study", "book", "eye", "job", "word", "business", "issue", "side", "kind", "head", "house", "service", "friend", "father", "power", "hour", "game", "line", "end", "member", "law", "car", "city", "community", "name", "president", "team", "minute", "idea", "kid", "body", "information", "back", "parent", "face", "others", "level", "office", "door", "health", "person", "art", "war", "history", "party", "result", "change", "morning", "reason", "research", "girl", "guy", "moment", "air", "teacher", "force", "education"]
+randomwords = ["time", "year", "people", "way", "day", "man", "thing", "woman", "life", "child", "world", "school", "state", "family", "student", "group", "country", "problem", "hand", "part", "place", "case", "week", "company", "system", "program", "work", "number", "night", "point", "home", "water", "room", "mother", "area", "money", "story", "fact", "month", "lot", "right", "study", "book", "eye", "job", "word", "issue", "side", "kind", "head", "house", "friend", "father", "power", "hour", "game", "line", "end", "member", "law", "car", "city", "name", "team", "minute", "idea", "kid", "body", "back", "parent", "face", "others", "level", "office", "door", "health", "person", "art", "war", "party", "result", "change", "reason", "research", "girl", "guy", "moment", "air", "force"]
 selectedInstanceName = ''
 columnsToRead = ["Name", "State", "Ipv4", "Release", "Memory total", "Memory usage", "CPU(s)", "Load", "Disk usage", "Disk total"]
-instanceTableNumRows = 6
+instanceTableNumRows = 8
 local_cloud_init_yaml_filename = 'cloud-init.yaml'
 local_mac_shell_script_name = '_mac_launch_script.sh'
 cloud_init_examples_url = 'https://cloudinit.readthedocs.io/en/latest/reference/examples.html'
@@ -204,19 +204,23 @@ def new_window():
     labeltextwidth = 12
 
     ### Manage Instances ###
+    # Instance Type
     txtInstanceType = sg.Text('Instance Type?', size=labeltextwidth, tooltip='Which image to use')
     cboInstanceTypes = sg.Combo(instanceTypes, readonly=True, enable_events=True, expand_x=True, key='-INSTANCETYPE-')
+    # Instance Name
     txtInstanceName = sg.Text('Instance Name', size=labeltextwidth, tooltip='Leave blank for a random name')
     inpInstanceName = sg.Input(key='-INSTANCENAME-', expand_x=True)
-    txtCPUCores = sg.Text('CPU Cores', size=labeltextwidth)
-    sliCPUCores = sg.Slider((1, 8), 2, 1, disable_number_display=True, tick_interval=1, orientation="h", key="-OUTPUT-CPU-", expand_x=True)
-    txtRAM = sg.Text('RAM (MB)', size=labeltextwidth)
-    sliRAM = sg.Slider((0, 16384), 1024, 256, tick_interval=2048, orientation="h", key="-OUTPUT-RAM-", expand_x=True)
-    txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth)
-    sliDiskGB = sg.Slider((0, 256), 8, 4, tick_interval=16, orientation="h", key="-OUTPUT-DISK-", expand_x=True)
+    # CPU
+    txtCPUCores = sg.Text('CPU Cores', size=labeltextwidth, justification='right')
+    cboCPUCores = sg.Combo([1,2,3,4,5,6,7,8], 2, readonly=True, enable_events=True, expand_x=True, key='-OUTPUT-CPU-')
+    # RAM
+    txtRAM = sg.Text('RAM (GB)', size=labeltextwidth, justification='right')
+    cboRAM = sg.Combo([0.25,0.5,0.75,1,2,3,4,6,8,12,16], 0.5, readonly=True, enable_events=True, expand_x=True, key='-OUTPUT-RAM-')
+    # Disk
+    txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth, justification='right')
+    cboDiskGB = sg.Combo([8,12,16,24,32,48,64,96,128,192,256,384,512], 8, readonly=True, enable_events=True, expand_x=True, key='-OUTPUT-DISK-')
     # Mount Disk
-    txtMountFolder = sg.Text('Mount Folder', size=labeltextwidth)
-    cbMountFolder = sg.CBox('Mount Folder?', default=False, enable_events=True, key='-MOUNTFOLDER-', visible=True)
+    txtMountFolder = sg.Text('Mount Folder?', size=labeltextwidth, tooltip='Moungts folder to /multipass inside instance')
     inpMountFolder = sg.Input(expand_x=True, key='-INPMOUNTFOLDER-')
     btnMountFolder = sg.Button('Browse', key='-MOUNTFOLDERSOURCE-', expand_x=True)
     #
@@ -224,10 +228,9 @@ def new_window():
     txtCloudInitFile = sg.Text(textwrap.fill('Import\nFile?', labeltextwidth),font=(None, GUISize, "underline"), tooltip=f'Click for Cloud Init Reference Guide: {cloud_init_examples_url}', size=labeltextwidth, key='-CLOUDINITFILEPATH-', enable_events=True)
     inpCloudInitFile = sg.Input(expand_x=True, key='-CLOUDINITINPUT-')
     btnLoadCloudInitFile = sg.Button('Browse', key='-LOADCLOUDINITFILE-', expand_x=True)
-    mulCloudInitYAML = sg.Multiline(default_text='package_update: true\npackage_upgrade: true', size=(50,8),  expand_x=True, key='-CLOUDINITYAML-')
+    mulCloudInitYAML = sg.Multiline(default_text='package_update: true\npackage_upgrade: true', size=(50,14),  expand_x=True, key='-CLOUDINITYAML-')
     btnCreateInstance = sg.Button('⚡ Create Instance', key="-CREATEINSTANCE-", expand_x=True, tooltip='Create the instance described above (launches in new console window)')
     ### Table ###
-    txtInstances = sg.Text('Instances', justification='center', expand_x=True)
     tblInstances = sg.Table(values=instancesDataForTable, enable_events=True, key='-INSTANCEINFO-', headings=instancesHeadersForTable, max_col_width=25, auto_size_columns=True, justification='right', num_rows=instanceTableNumRows, expand_x=True, select_mode=sg.TABLE_SELECT_MODE_BROWSE, enable_click_events=True)  # https://github.com/PySimpleGUI/PySimpleGUI/issues/5198
     btnStartInstance  = sg.Button('⏵ Start Instance',  disabled=True, key='-STARTBUTTON-',  expand_x=True)
     btnRestartInstance  = sg.Button('↻ Restart Instance',  disabled=True, key='-RESTARTBUTTON-',  expand_x=True)
@@ -248,12 +251,9 @@ def new_window():
         ### Create Instances ###
         [
             [
-                [txtInstanceType, cboInstanceTypes],
                 [txtInstanceName, inpInstanceName],
-                [txtCPUCores, sliCPUCores],
-                [txtRAM, sliRAM],
-                [txtDiskGB, sliDiskGB],
-                [txtMountFolder, inpMountFolder, btnMountFolder], #, txtMountFolder],
+                [txtInstanceType, cboInstanceTypes, txtCPUCores, cboCPUCores,txtRAM, cboRAM,txtDiskGB, cboDiskGB],
+                [txtMountFolder, inpMountFolder, btnMountFolder],
                 [txtCloudInitFile, inpCloudInitFile, btnLoadCloudInitFile],
                 [cbUseCloudInit, mulCloudInitYAML],
                 [btnCreateInstance],
@@ -262,7 +262,6 @@ def new_window():
         ],
         ### Manage Instances ###
         [
-            # [txtInstances],
             [tblInstances],
             [[btnStartInstance, btnRestartInstance, btnStopInstance, btnDeleteInstance, btnShellIntoInstance,btnRefreshTable],],
         ],
@@ -380,7 +379,8 @@ while True:
             itype = '22.04'
         iname = (values['-INSTANCENAME-']).strip()
         icpus = str(int(values['-OUTPUT-CPU-']))
-        iram  = str(int(values['-OUTPUT-RAM-'])*1024*1024)
+        iram  = str(int(float(values['-OUTPUT-RAM-'])*1024*1024*1024))
+        iramGB = str(values['-OUTPUT-RAM-'])
         idisk = str(int((values['-OUTPUT-DISK-'])*1024*1024*1024))
         if iname == '':
             iname = get_random_word() + "-" + get_random_word()
@@ -399,7 +399,7 @@ while True:
             else:
                 commandline = commandline + f' --mount {mountFolderValue}:/multipass'
         if stop_creation != True:
-            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {str(int(values['-OUTPUT-RAM-']))}MB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
+            UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CREATING - '{iname}', OS:{itype}, {icpus}CPU, {iramGB}GB, {str(int(values['-OUTPUT-DISK-']))}GB", window)
             # For now, just push the windows command to a terminal window. Need to do the other OSs too
             if platform.system() in ("Windows"):
                 retval = runCommandInTerminalWindow(commandline)
