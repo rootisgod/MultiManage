@@ -37,6 +37,7 @@ multimanage_config_file_name = 'multimanage.cnf'
 # muktimanage.cnf Default Config Vars
 cloud_init_template_folder = './'
 cloud_init_default_text = 'package_update: true\npackage_upgrade: true'
+cloud_init_template_folder_files = ''
 
 def runCommandInTerminalWindow(cmd):
     if platform.system() in ("Windows"):
@@ -176,6 +177,10 @@ def runCommandSilently(cmd, timeout=None, window=None):
         sg.popup('Error. I will improve the feedback later... It is probably your cloudinit file, or lack of RAM/DISK for chosen image that is invalid though.', keep_on_top=True)
     return (retval, output)                         # also return the output just for fun
 
+def Update_Cloud_Init_Folder_File_List():
+    global cloud_init_template_folder_files
+    if os.path.isdir(cloud_init_template_folder):
+        cloud_init_template_folder_files = os.listdir(cloud_init_template_folder)
 
 # This function does the actual "running" of the command in a popup window
 def runCommandInPopupWindow(cmd, timeout=None):
@@ -204,7 +209,10 @@ def loadYAMLCloudInitFile(filePathAndName):
     # https://stackoverflow.com/questions/67065794/how-to-open-a-file-upon-button-click-pysimplegui
     cloud_init_yaml = ''
     with open(filePathAndName, 'r') as file:
-        cloud_init_yaml = yaml.safe_load(file)
+        try:
+            cloud_init_yaml = yaml.safe_load(file)
+        except yaml.YAMLError as e:
+            print(e)
     with open(filePathAndName, "rt", encoding='utf-8') as file:
         cloud_init_yaml = file.read()
     return cloud_init_yaml
@@ -237,10 +245,14 @@ def new_window():
     txtMountFolder = sg.Text('Mount Folder?', size=labeltextwidth, tooltip='Moungts folder to /multipass inside instance')
     inpMountFolder = sg.Input(expand_x=True, key='-INPMOUNTFOLDER-')
     btnMountFolder = sg.Button('Browse', key='-MOUNTFOLDERSOURCE-', expand_x=True)
-    # Cloud Init
+    # Cloud Init Dropdown
+    txtCloudInitFiles = sg.Text(textwrap.fill('Select File', labeltextwidth),font=(None, GUISize), size=labeltextwidth, key='-CLOUDINITFILESTXT-', enable_events=True)
+    cboCloudInitFiles = sg.Combo(cloud_init_template_folder_files, readonly=True, enable_events=True, expand_x=True, key='-CLOUD-INIT-FILE-COMBOBOX-')
+    # Cloud Init Browse
     cbUseCloudInit = sg.CBox(textwrap.fill('Run Cloud Init File?', labeltextwidth), default=True, enable_events=True, key='-USECLOUDINIT-')
-    txtCloudInitFile = sg.Text(textwrap.fill('Import\nFile?', labeltextwidth),font=(None, GUISize, "underline"), tooltip=f'Click for Cloud Init Reference Guide: {cloud_init_examples_url}', size=labeltextwidth, key='-CLOUDINITFILEPATH-', enable_events=True)
+    txtCloudInitFile = sg.Text(textwrap.fill('Cloud Init', labeltextwidth),font=(None, GUISize, "underline"), tooltip=f'Click for Cloud Init Reference Guide: {cloud_init_examples_url}', size=labeltextwidth, key='-CLOUDINITFILEPATH-', enable_events=True)
     inpCloudInitFile = sg.Input(expand_x=True, key='-CLOUDINITINPUT-')
+    # Cloud Init Text
     btnLoadCloudInitFile = sg.Button('Browse', key='-LOADCLOUDINITFILE-', expand_x=True)
     mulCloudInitYAML = sg.Multiline(default_text=cloud_init_default_text, size=(50,14),  expand_x=True, key='-CLOUDINITYAML-')
     # Create Instance Button
@@ -269,7 +281,7 @@ def new_window():
                 [txtInstanceName, inpInstanceName],
                 [txtInstanceType, cboInstanceTypes, txtCPUCores, cboCPUCores,txtRAM, cboRAM,txtDiskGB, cboDiskGB],
                 [txtMountFolder, inpMountFolder, btnMountFolder],
-                [txtCloudInitFile, inpCloudInitFile, btnLoadCloudInitFile],
+                [txtCloudInitFile, txtCloudInitFiles, cboCloudInitFiles, inpCloudInitFile, btnLoadCloudInitFile],
                 [cbUseCloudInit, mulCloudInitYAML],
                 [btnCreateInstance],
             ],
@@ -355,6 +367,8 @@ else:
 # Load values from config file if it exists
 if os.path.isfile(f'{multimanage_config_file_location}{multimanage_config_file_name}'):
     read_config_file()
+# Read files in the cloud init templates folder
+Update_Cloud_Init_Folder_File_List()
 
 # Setup and Create Window
 sg.set_options(font=f'Default {GUISize}')
@@ -382,12 +396,13 @@ def get_linux_shell():
         user_shell = '/bin/bash'
     return user_shell
 
-
 ######################################################################
 # Event Loop
 ######################################################################
 while True:
     event, values = window.read()
+    # Reload cloud init template folder files on each action in case it has changed
+    Update_Cloud_Init_Folder_File_List()
     # print(event, values)  # Useful for debugging
 
     # MAIN GUI CODE
@@ -459,6 +474,11 @@ while True:
                     UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CANNOT COPY '{copiedValue}' TO CLIPBOARD. INSTALL XSEL TO FIX", window)
                 else:
                     UpdatetxtStatusBoxAndRefreshWindow('-STATUS-', f"CANNOT COPY '{copiedValue}' TO CLIPBOARD. UNKNOWN REASON", window)
+    if event == '-CLOUD-INIT-FILE-COMBOBOX-':
+        file_name = values[event]
+        file_path = (f'{cloud_init_template_folder}/{file_name}')
+        window['-CLOUDINITYAML-'].update(loadYAMLCloudInitFile(filePathAndName=file_path))
+        window['-CLOUDINITINPUT-'].update('')
     if event == '-LOADCLOUDINITFILE-':
         chosen_file = (sg.popup_get_file('Which CloudInit File?', default_path=cloud_init_template_folder, multiple_files=False, no_window=True, keep_on_top=True, file_types=((('YAML Files', '*.yml, *.yaml'),))))
         if chosen_file != '':
