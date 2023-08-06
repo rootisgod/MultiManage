@@ -78,6 +78,7 @@ jobs:
                     - os: ubuntu-22.04
                       TARGET: linux
                       CMD_BUILD: |
+                        sudo apt update -y
                         sudo apt install python3 python3-pip python3-venv python3-tk -y
                         python3 -m venv ./venv-multimanage/
                         sudo chmod +x ./venv-multimanage/bin/activate
