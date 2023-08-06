@@ -1,0 +1,10 @@
+package_update: false
+package_upgrade: false
+users:
+  - name: ubuntu
+    plain_text_passwd: 'ubuntu'
+    sudo: true
+    groups: root
+    lock_passwd: false
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA0wSRi83wxDgxdA8o34GOjYkjC/ck5UsvRO7q8vPqhs%
