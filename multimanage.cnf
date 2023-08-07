@@ -1,5 +1,5 @@
 [multimanage]
-cloud_init_template_folder: /Users/iain/Code/MultiManage/Cloud-Init-Templates
+cloud_init_template_folder: ./Cloud-Init-Templates
 cloud_init_default_text:
     package_update: true
     package_upgrade: true

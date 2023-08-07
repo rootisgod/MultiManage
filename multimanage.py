@@ -37,7 +37,7 @@ multimanage_config_file_name = 'multimanage.cnf'
 # muktimanage.cnf Default Config Vars
 cloud_init_template_folder = './'
 cloud_init_default_text = 'package_update: true\npackage_upgrade: true'
-cloud_init_template_folder_files = ''
+cloud_init_template_folder_files = []
 
 def runCommandInTerminalWindow(cmd):
     if platform.system() in ("Windows"):
@@ -180,7 +180,9 @@ def runCommandSilently(cmd, timeout=None, window=None):
 def Update_Cloud_Init_Folder_File_List():
     global cloud_init_template_folder_files
     if os.path.isdir(cloud_init_template_folder):
-        cloud_init_template_folder_files = os.listdir(cloud_init_template_folder)
+        cloud_init_template_folder_all_files = os.listdir(cloud_init_template_folder)
+        cloud_init_template_folder_files += [i for i in cloud_init_template_folder_all_files if '.yml' in i]
+        cloud_init_template_folder_files += [i for i in cloud_init_template_folder_all_files if '.yaml' in i]
 
 # This function does the actual "running" of the command in a popup window
 def runCommandInPopupWindow(cmd, timeout=None):
