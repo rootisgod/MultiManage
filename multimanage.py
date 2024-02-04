@@ -117,7 +117,7 @@ def UpdateInstanceTableValues():
         instancesHeadersForTable = list(df.columns.values)
         instancesDataForTable    = list(data)
 
-
+# I think this is brken just now, it only works on load, not on clicking...
 def UpdateInstanceTableValuesAndTable(key):
     global instanceTableNumRows
     UpdateInstanceTableValues()
