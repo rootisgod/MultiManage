@@ -66,6 +66,9 @@ def GetScreenHeight():
 def IsMultipassRunning():
     global instancesHeadersForTable
     global instancesDataForTable
+    # Seem to need to blank these on load now. Probably my fault in not returning these in the function if empty
+    instancesHeadersForTable = []
+    instancesDataForTable = []
     results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', pipe_output=True, wait=True, stdin=subprocess.PIPE))
     if 'Available commands' in results[0]:
         print('MULTIPASS FOUND')
@@ -91,10 +94,10 @@ def UpdateInstanceTableValues():
     global columnsToRead
     global instancesHeadersForTable
     global instancesDataForTable
-    results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'info', '--all', '--format', 'csv', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+    results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'info', '--format', 'csv', pipe_output=True, wait=True, stdin=subprocess.PIPE))
     if results[0]:
         df = pd.read_csv(io.StringIO(results[0]), usecols = columnsToRead)
-        # Massive the data a bit to remove NaNs
+        # Massage the data a bit to remove NaNs
         df['Memory total'] = df['Memory total'].replace(np.nan, 0)
         df['Memory usage'] = df['Memory usage'].replace(np.nan, 0)
         df['Disk total'] = df['Disk total'].replace(np.nan, 0)
@@ -114,7 +117,7 @@ def UpdateInstanceTableValues():
         instancesHeadersForTable = list(df.columns.values)
         instancesDataForTable    = list(data)
 
-
+# I think this is brken just now, it only works on load, not on clicking...
 def UpdateInstanceTableValuesAndTable(key):
     global instanceTableNumRows
     UpdateInstanceTableValues()
@@ -316,9 +319,9 @@ if not IsMultipassRunning():
     sys.exit()
 
 # Get the instance we can launch
-results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'find', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
-if results[0]:
-    jsonData = json.loads(results[0])
+availableInstances = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'find', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+if availableInstances[0]:
+    jsonData = json.loads(availableInstances[0])
     # Multipass 1.12 has a new blueprints section for no official images
     if "blueprints" in jsonData:
         instanceTypes = list(jsonData['images'].keys()) + list(jsonData['blueprints'].keys())
