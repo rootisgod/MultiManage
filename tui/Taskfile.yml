@@ -1,0 +1,59 @@
+version: '3'
+
+tasks:
+  run:
+    cmds:
+      - python mptui.py
+
+  test:
+    cmds:
+      - pytest -xvs test.py
+
+  full-test:
+    cmds:
+     - multipass delete --all
+     - multipass purge
+     - pytest -xvs test.py
+     - multipass launch --name vm1
+     - pytest -xvs test.py
+     - multipass launch --name vm2
+     - pytest -xvs test.py
+     - multipass stop vm1
+     - pytest -xvs test.py
+     - multipass stop vm2
+     - pytest -xvs test.py
+     - multipass delete --all
+     - multipass purge
+     - pytest -xvs test.py
+
+  create-mixed-instances:
+    cmds:
+     - multipass delete --all
+     - multipass purge
+     - pytest -xvs test.py
+     - multipass launch  --name vm1
+     - multipass launch  --name vm2
+     - multipass launch  --name vm3
+     - multipass stop    vm2
+     - multipass suspend vm3
+     - pytest -xvs test.py
+
+  create-test-instances:
+    cmds:
+     - multipass delete --all
+     - multipass purge
+     - multipass launch --name vm1
+     - multipass launch --name vm2
+
+  stop-all:
+    cmds:
+     - multipass stop --all
+
+  start-all:
+    cmds:
+     - multipass start --all
+
+  delete-all:
+    cmds:
+     - multipass delete --all
+     - multipass purge
