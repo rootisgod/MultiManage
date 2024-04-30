@@ -147,7 +147,54 @@ def get_running_multipass_instances() -> Dict[str, Any]:
     return running_instances
 
 
-def stop_instance(name: str) -> bool:
-    """ Stop an instance """
+def stop_all_instances() -> None:
+    """ Stop all instances """
+    try:
+        run_multipass_command('multipass stop --all')
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred stopping the instances: {e}")
+        return None
 
-    print("stop_instance")
+
+def start_all_instances() -> None:
+    """ Start all instances """
+    try:
+        run_multipass_command('multipass start --all')
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred starting the instances: {e}")
+        return None
+
+
+def start_instance(name: str) -> None:
+    """ Start an instance """
+    try:
+        run_multipass_command(f'multipass start {name}')
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred starting the instance: {e}")
+        return None
+
+
+def get_instances_for_textual_datatable():
+    """
+    Get a json object of all instances
+
+        Returns:
+        Dict: An object that has the multipass instances in JSON/DICT format
+
+    """
+    try:
+        output = run_multipass_command('multipass list --format csv')
+        rows = output.split('\n')
+        rows = [row for row in rows if row.strip()]
+        data = []
+        for row in rows:
+            columns = row.split(',')
+            data.append(columns)
+        return data
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred getting the instances: {e}")
+        return None
