@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""tests for mptui.py"""
+"""tests for main.py"""
 
 import os
 import re
-from mptui import *
+from main import *
 
-prg = './mptui.py'
+prg = './main.py'
 
 
 # --------------------------------------------------

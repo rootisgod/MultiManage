@@ -1,25 +1,9 @@
-#!/usr/bin/env python3
-"""
-Author:  Iain
-Purpose: Multipass TU
-"""
-
-import argparse
+# I dont like importing libraries here and in main.py, but hey ho.
+# Libraries
 import subprocess
 import re
 import json
 from typing import Dict, Any
-
-
-def get_args():
-    """ Get passed args """
-
-    parser = argparse.ArgumentParser(description='Get Help')
-    parser.add_argument('-h', '--help', metavar='help',
-                        default='Runs a Text Interface for Multipass',
-                        help='Info on this util')
-    return parser.parse_args()
-
 
 def run_multipass_command(command):
     """
@@ -167,16 +151,3 @@ def stop_instance(name: str) -> bool:
     """ Stop an instance """
 
     print("stop_instance")
-
-
-def main():
-    """ Execute program """
-
-    print("*** Program Started ***")
-    mp_version = get_multipass_version()
-    print(f"MP Version is: {mp_version}")
-    print("*** Program Ended ***")
-
-
-if __name__ == '__main__':
-    main()
