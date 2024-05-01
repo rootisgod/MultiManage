@@ -185,6 +185,14 @@ def stop_instance(name: str) -> None:
         print(f"An error occurred stopping the instance: {e}")
         return None
 
+def suspend_instance(name: str) -> None:
+    """ Suspend an instance """
+    try:
+        run_multipass_command(f'multipass suspend {name}')
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred suspending the instance: {e}")
+        return None
 
 def get_instances_for_textual_datatable():
     """

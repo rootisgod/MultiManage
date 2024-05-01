@@ -21,6 +21,7 @@ class mptui(App):
 
     BINDINGS = [("[", "stop_instance", "Stop"),
                 ("]", "start_instance", "Start"),
+                ("p", "suspend_instance", "Suspend"),
                 ("<", "stop_all", "Stop ALL"),
                 (">", "start_all", "Start ALL"),
                 ("r", "refresh_table", "Refresh Table"),
@@ -51,14 +52,14 @@ class mptui(App):
 
     # Use this to test what values are passed around etc...
     def on_key(self, event: events.Key) -> None:
-        self.query_one(RichLog).write(event)
         table = self.query_one(DataTable)
         value = table.get_row_at(table.cursor_row)
         # Name has to 'always' be 0 column
         instance_name = value[0]
         label = self.query_one(Label)
         label.update(str(instance_name))
-        self.query_one(RichLog).write(str(instance_name))
+        # self.query_one(RichLog).write(event)
+        # self.query_one(RichLog).write(str(instance_name))
 
 
     def on_mount(self) -> None:
@@ -73,23 +74,34 @@ class mptui(App):
 
     def action_stop_all(self) -> None:
         """An action to stop all instances"""
+        self.notify(f"Stopped ALL Instances")
         stop_all_instances()
         self.refresh_table()
 
     def action_start_all(self) -> None:
         """An action to start all instances"""
+        self.notify(f"Started ALL Instances")
         start_all_instances()
         self.refresh_table()
 
     def action_start_instance(self) -> None:
         """An action to start the selected instances"""
         instance_name = self.get_selected_instance_name()
+        self.notify(f"Started {instance_name}")
         start_instance(instance_name)
+        self.refresh_table()
+
+    def action_suspend_instance(self) -> None:
+        """An action to suspend the selected instances"""
+        instance_name = self.get_selected_instance_name()
+        self.notify(f"Suspended {instance_name}")
+        suspend_instance(instance_name)
         self.refresh_table()
 
     def action_stop_instance(self) -> None:
         """An action to stop the selected instances"""
         instance_name = self.get_selected_instance_name()
+        self.notify(f"Stopped {instance_name}")
         stop_instance(instance_name)
         self.refresh_table()
 
