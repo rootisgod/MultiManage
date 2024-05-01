@@ -11,7 +11,7 @@ import argparse
 from typing import Dict, Any
 # Textual
 from textual.app import App, ComposeResult, events
-from textual.widgets import Header, Footer, DataTable, Input, Button, Label
+from textual.widgets import Header, Footer, DataTable, Input, Button, Label, RichLog
 from textual.widgets.data_table import RowDoesNotExist
 
 
@@ -23,13 +23,16 @@ class mptui(App):
                 ("]", "start_instance", "Start"),
                 ("<", "stop_all", "Stop ALL"),
                 (">", "start_all", "Start ALL"),
-                ("r", "refresh_table", "Refresh Table")]
+                ("r", "refresh_table", "Refresh Table"),
+                ("q", "quit", "QUIT")
+                ]
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
         yield DataTable(cursor_type="row")
         yield Label("Value", id="value_label")
+        yield RichLog()
         yield Footer()
 
     def refresh_table(self) -> None:
@@ -39,7 +42,7 @@ class mptui(App):
         table.add_columns(*rows[0])
         table.add_rows(rows[1:])
 
-    def get_selectd_instance_name(self) -> str:
+    def get_selected_instance_name(self) -> str:
         table = self.query_one(DataTable)
         value = table.get_row_at(table.cursor_row)
         # Name has to 'always' be 0 column
@@ -48,12 +51,15 @@ class mptui(App):
 
     # Use this to test what values are passed around etc...
     def on_key(self, event: events.Key) -> None:
+        self.query_one(RichLog).write(event)
         table = self.query_one(DataTable)
         value = table.get_row_at(table.cursor_row)
         # Name has to 'always' be 0 column
         instance_name = value[0]
         label = self.query_one(Label)
         label.update(str(instance_name))
+        self.query_one(RichLog).write(str(instance_name))
+
 
     def on_mount(self) -> None:
         self.refresh_table()
@@ -77,16 +83,18 @@ class mptui(App):
 
     def action_start_instance(self) -> None:
         """An action to start the selected instances"""
-        instance_name = self.get_selectd_instance_name()
+        instance_name = self.get_selected_instance_name()
         start_instance(instance_name)
         self.refresh_table()
 
-
     def action_stop_instance(self) -> None:
         """An action to stop the selected instances"""
-        instance_name = self.get_selectd_instance_name()
+        instance_name = self.get_selected_instance_name()
         stop_instance(instance_name)
         self.refresh_table()
+
+    def action_quit(self):
+        self.exit()
 
 
 def get_args():
