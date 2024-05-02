@@ -42,3 +42,15 @@ make delete-all-instances
 test create-test-instances
 test delete-all-instances
 ```
+
+
+# Build
+
+To build a binary, do this.
+
+## MAC
+```
+pip install pyinstaller
+pyinstaller -F -w -n mptui main.py
+./dist/mptui
+```
