@@ -221,6 +221,18 @@ def purge_instances() -> None:
         print(f"An error occurred purging the instances: {e}")
         return None
 
+def shell_into(name: str) -> None:
+    """ Shell into instance """
+    try:
+        # run_multipass_command(f'multipass shell {name}')
+        # subprocess.Popen(['start', 'cmd', '/k', 'your_command_here'])
+        # subprocess.Popen(['open', '-a', 'Terminal', 'your_command_here'])
+        # subprocess.Popen(['gnome-terminal', '--', 'your_command_here'])
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred shelling into the instance: {e}")
+        return None
+
 def get_instances_for_textual_datatable():
     """
     Get a json object of all instances

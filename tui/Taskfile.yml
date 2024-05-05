@@ -1,6 +1,11 @@
 version: '3'
 
 tasks:
+
+  activate:
+    cmds:
+      - . ./venv/bin/activate
+
   run:
     cmds:
       - ./venv/bin/python main.py

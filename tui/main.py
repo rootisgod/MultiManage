@@ -63,6 +63,7 @@ class mptui(App):
                 ("d", "delete_instance", "Delete"),
                 ("!", "purge_all", "Purge ALL"),
                 ("r", "refresh_table", "Refresh Table"),
+                ("s", "shell_into", "Shell"),               
                 ("q", "quit", "QUIT")
                 ]
 
@@ -150,6 +151,11 @@ class mptui(App):
         purge_instances()
         self.refresh_table()
 
+    def action_shell_into(self) -> None:
+        """An action to shell into the selected instances"""
+        instance_name = self.get_selected_instance_name()
+        self.notify(f"Shelling into {instance_name}")
+        # shell_into(instance_name)
 
     def action_quit(self):
         self.exit()
