@@ -48,6 +48,9 @@ jobs:
                       TARGET: macos
                       CMD_BUILD: |
                         cd tui
+                        python3 -m venv ./venv/
+                        chmod +x ./venv/bin/activate
+                        . ./venv/bin/activate
                         python3 -m pip install --upgrade pip
                         pip3 install -r requirements.txt
                         pip3 install pyinstaller
