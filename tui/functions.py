@@ -203,6 +203,15 @@ def delete_instance(name: str) -> None:
         print(f"An error occurred deleting the instance: {e}")
         return deleting
 
+def quick_create_instance() -> None:
+    """ Create a quick instance """
+    try:
+        run_multipass_command('multipass launch')
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred creating the instances: {e}")
+        return None
+
 def purge_instances() -> None:
     """ Purge deleted instances """
     try:

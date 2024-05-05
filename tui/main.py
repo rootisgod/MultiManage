@@ -54,6 +54,7 @@ class mptui(App):
 
     BINDINGS = [
                 ("h", "get_help", "Help"),
+                ("c", "quick_create_instance", "Quick Create"),
                 ("[", "stop_instance", "Stop"),
                 ("]", "start_instance", "Start"),
                 ("p", "suspend_instance", "Suspend"),
@@ -135,6 +136,12 @@ class mptui(App):
         instance_name = self.get_selected_instance_name()
         self.notify(f"Deleted {instance_name}")
         delete_instance(instance_name)
+        self.refresh_table()
+
+    def action_quick_create_instance(self) -> None:
+        """An action to quickly create an instance"""
+        self.notify(f"Creating Instance")
+        quick_create_instance()
         self.refresh_table()
 
     def action_purge_all(self) -> None:
