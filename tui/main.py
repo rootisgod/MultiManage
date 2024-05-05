@@ -16,6 +16,7 @@ from textual.containers import Container
 from textual.widgets import Header, Footer, DataTable, Input, Button, Label, RichLog
 from textual.widgets.data_table import RowDoesNotExist
 from textual.screen import ModalScreen
+from textual_terminal import Terminal
 
 class HelpScreen(ModalScreen[None]):
     BINDINGS = [("escape", "pop_screen")]
@@ -72,6 +73,7 @@ class mptui(App):
         yield Header()
         yield DataTable(cursor_type="row", id="datatable")
         yield RichLog()
+        # yield Terminal(id="terminal_bash")
         yield Footer()
 
     def action_get_help(self) -> None:
@@ -93,6 +95,8 @@ class mptui(App):
 
     def on_mount(self) -> None:
         self.refresh_table()
+        # terminal_bash: Terminal = self.query_one("#terminal_bash")
+        # terminal_bash.start()
 
     # ACTIONS
     def action_refresh_table(self) -> None:

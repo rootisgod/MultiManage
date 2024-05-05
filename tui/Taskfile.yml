@@ -31,7 +31,8 @@ tasks:
      - multipass purge
      - ./venv/bin/pytest -xvs test.py
 
-  create-mixed-instances:
+  # create-mixed-instances:
+  cmi:
     cmds:
      - multipass delete --all
      - multipass purge
