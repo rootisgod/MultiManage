@@ -12,8 +12,9 @@ on:
         paths-ignore:
             - '**.md'
 
-    run:
-        working-directory: web
+defaults:
+  run:
+    working-directory: tui
 
 jobs:
     createrelease:
@@ -43,9 +44,6 @@ jobs:
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
         runs-on: ${{ matrix.os }}
-        defaults:
-          run:
-            working-directory: tui
         strategy:
             fail-fast: false
             matrix:
