@@ -59,6 +59,8 @@ class mptui(App):
                 ("p", "suspend_instance", "Suspend"),
                 ("<", "stop_all", "Stop ALL"),
                 (">", "start_all", "Start ALL"),
+                ("d", "delete_instance", "Delete"),
+                ("!", "purge_all", "Purge ALL"),
                 ("r", "refresh_table", "Refresh Table"),
                 ("q", "quit", "QUIT")
                 ]
@@ -127,6 +129,20 @@ class mptui(App):
         self.notify(f"Stopped {instance_name}")
         stop_instance(instance_name)
         self.refresh_table()
+
+    def action_delete_instance(self) -> None:
+        """An action to delete the selected instances"""
+        instance_name = self.get_selected_instance_name()
+        self.notify(f"Deleted {instance_name}")
+        delete_instance(instance_name)
+        self.refresh_table()
+
+    def action_purge_all(self) -> None:
+        """An action to purge all instances"""
+        self.notify(f"Purged All Instances")
+        purge_instances()
+        self.refresh_table()
+
 
     def action_quit(self):
         self.exit()

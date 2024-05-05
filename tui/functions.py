@@ -194,6 +194,24 @@ def suspend_instance(name: str) -> None:
         print(f"An error occurred suspending the instance: {e}")
         return None
 
+def delete_instance(name: str) -> None:
+    """ Delete an instance """
+    try:
+        run_multipass_command(f'multipass delete {name}')
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred deleting the instance: {e}")
+        return deleting
+
+def purge_instances() -> None:
+    """ Purge deleted instances """
+    try:
+        run_multipass_command('multipass purge')
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred purging the instances: {e}")
+        return None
+
 def get_instances_for_textual_datatable():
     """
     Get a json object of all instances
