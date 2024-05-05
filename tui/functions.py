@@ -223,7 +223,9 @@ def purge_instances() -> None:
 
 def shell_into(name: str) -> None:
     """ Shell into instance """
+    # This may be useful: https://github.com/mitosch/textual-terminal
     try:
+        print("")
         # run_multipass_command(f'multipass shell {name}')
         # subprocess.Popen(['start', 'cmd', '/k', 'your_command_here'])
         # subprocess.Popen(['open', '-a', 'Terminal', 'your_command_here'])
