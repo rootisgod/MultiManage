@@ -12,6 +12,9 @@ on:
         paths-ignore:
             - '**.md'
 
+    run:
+        working-directory: web
+
 jobs:
     createrelease:
         name: Create Release
@@ -40,6 +43,9 @@ jobs:
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
         runs-on: ${{ matrix.os }}
+        defaults:
+          run:
+            working-directory: tui
         strategy:
             fail-fast: false
             matrix:
@@ -47,7 +53,6 @@ jobs:
                     - os: macos-latest
                       TARGET: macos
                       CMD_BUILD: |
-                        cd tui
                         python3 -m pip install --upgrade pip
                         pip3 install -r requirements.txt
                         pip3 install pyinstaller
@@ -59,7 +64,6 @@ jobs:
                     - os: windows-latest
                       TARGET: windows-installer
                       CMD_BUILD: |
-                        cd tui
                         python -m pip install --upgrade pip
                         pip install -r requirements.txt
                         pip install pyinstaller
@@ -72,7 +76,6 @@ jobs:
                     - os: windows-latest
                       TARGET: windows-portable
                       CMD_BUILD: |
-                        cd tui
                         python -m pip install --upgrade pip
                         pip install -r requirements.txt
                         pip install pyinstaller
