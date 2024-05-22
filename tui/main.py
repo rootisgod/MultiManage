@@ -10,7 +10,7 @@ from functions import *
 import argparse
 from typing import Dict, Any
 # Textual
-from textual import log
+from textual import log, on
 from textual.app import App, ComposeResult, events
 from textual.containers import Container
 from textual.widgets import Header, Footer, DataTable, Input, Button, Label, RichLog
@@ -45,8 +45,13 @@ class HelpScreen(ModalScreen[None]):
         with Container(id="help-screen-container"):
             yield Label("A MultiPasss Text UI")
             yield Label("Hopefully you find it useful.")
+            yield Input()
             yield Label("Press ESC to exit.", id="exit")
 
+    @on(Input.Submitted)
+    def on_input_submitted(self):
+        input = self.query_one(Input)
+        return input.value
 
 
 # https://textual.textualize.io/tutorial/
@@ -77,7 +82,9 @@ class mptui(App):
         yield Footer()
 
     def action_get_help(self) -> None:
-        self.push_screen(HelpScreen())
+        value = self.push_screen(HelpScreen())
+        self.notify(f"Help Screen: {value}")
+        # self.query_one(RichLog).write(value)
 
     def refresh_table(self) -> None:
         rows = get_instances_for_textual_datatable()
