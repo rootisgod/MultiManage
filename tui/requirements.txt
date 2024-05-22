@@ -1,0 +1,5 @@
+PyYAML==6.0
+textual==0.55.1
+textual-dev==1.5.1
+rich
+textual-terminal

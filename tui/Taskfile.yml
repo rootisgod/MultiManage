@@ -1,0 +1,65 @@
+version: '3'
+
+tasks:
+
+  activate:
+    cmds:
+      - . ./venv/bin/activate
+
+  run:
+    cmds:
+      - ./venv/bin/python main.py
+
+  test:
+    cmds:
+      - ./venv/bin/pytest -xvs test.py
+
+  full-test:
+    cmds:
+     - multipass delete --all
+     - multipass purge
+     - ./venv/bin/pytest -xvs test.py
+     - multipass launch --name vm1
+     - ./venv/bin/pytest -xvs test.py
+     - multipass launch --name vm2
+     - ./venv/bin/pytest -xvs test.py
+     - multipass stop vm1
+     - ./venv/bin/pytest -xvs test.py
+     - multipass stop vm2
+     - ./venv/bin/pytest -xvs test.py
+     - multipass delete --all
+     - multipass purge
+     - ./venv/bin/pytest -xvs test.py
+
+  # create-mixed-instances:
+  cmi:
+    cmds:
+     - multipass delete --all
+     - multipass purge
+     - ./venv/bin/pytest -xvs test.py
+     - multipass launch  --name vm1
+     - multipass launch  --name vm2
+     - multipass launch  --name vm3
+     - multipass stop    vm2
+     - multipass suspend vm3
+     - ./venv/bin/pytest -xvs test.py
+
+  create-test-instances:
+    cmds:
+     - multipass delete --all
+     - multipass purge
+     - multipass launch --name vm1
+     - multipass launch --name vm2
+
+  stop-all:
+    cmds:
+     - multipass stop --all
+
+  start-all:
+    cmds:
+     - multipass start --all
+
+  delete-all:
+    cmds:
+     - multipass delete --all
+     - multipass purge
