@@ -67,8 +67,9 @@ class mptui(App):
                 ("<", "stop_all", "Stop ALL"),
                 (">", "start_all", "Start ALL"),
                 ("d", "delete_instance", "Delete"),
+                ("r", "recover_instance", "Recover"),
                 ("!", "purge_all", "Purge ALL"),
-                ("r", "refresh_table", "Refresh Table"),
+                ("/", "refresh_table", "Refresh Table"),
                 ("s", "shell_into", "Shell"),               
                 ("q", "quit", "QUIT")
                 ]
@@ -148,6 +149,13 @@ class mptui(App):
         instance_name = self.get_selected_instance_name()
         self.notify(f"Deleted {instance_name}")
         delete_instance(instance_name)
+        self.refresh_table()
+
+    def action_recover_instance(self) -> None:
+        """An action to rescover the selected instances"""
+        instance_name = self.get_selected_instance_name()
+        self.notify(f"Recovered {instance_name}")
+        recover_instance(instance_name)
         self.refresh_table()
 
     def action_quick_create_instance(self) -> None:

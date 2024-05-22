@@ -202,6 +202,15 @@ def delete_instance(name: str) -> None:
         # Handle any exceptions gracefully
         print(f"An error occurred deleting the instance: {e}")
         return deleting
+    
+def recover_instance(name: str) -> None:
+    """ Recover an instance """
+    try:
+        run_multipass_command(f'multipass recover {name}')
+    except Exception as e:
+        # Handle any exceptions gracefully
+        print(f"An error occurred recovering the instance: {e}")
+        return recover
 
 def quick_create_instance() -> None:
     """ Create a quick instance """
