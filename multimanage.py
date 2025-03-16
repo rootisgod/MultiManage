@@ -69,7 +69,11 @@ def IsMultipassRunning():
     # Seem to need to blank these on load now. Probably my fault in not returning these in the function if empty
     instancesHeadersForTable = []
     instancesDataForTable = []
-    results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+    results = sg.execute_get_results(
+        sg.execute_command_subprocess(
+            r'multipass', pipe_output=True, wait=True, stdin=subprocess.PIPE
+        )
+    )
     if 'Available commands' in results[0]:
         print('MULTIPASS FOUND')
         return True
@@ -275,13 +279,13 @@ def new_window():
     inpInstanceName = sg.Input(key='-INSTANCENAME-', expand_x=True)
     # CPU
     txtCPUCores = sg.Text('CPU Cores', size=labeltextwidth, justification='right')
-    cboCPUCores = sg.Combo([1,2,3,4,5,6,7,8], 2, readonly=True, enable_events=True, expand_x=True, key='-OUTPUT-CPU-')
+    cboCPUCores = sg.Combo([1, 2, 3, 4, 5, 6, 7, 8], 2, readonly=True, enable_events=True, expand_x=True, key='-OUTPUT-CPU-')
     # RAM
     txtRAM = sg.Text('RAM (GB)', size=labeltextwidth, justification='right')
-    cboRAM = sg.Combo([0.25,0.5,0.75,1,2,3,4,6,8,12,16], 0.5, readonly=True, enable_events=True, expand_x=True, key='-OUTPUT-RAM-')
+    cboRAM = sg.Combo([0.25, 0.5, 0.75, 1, 2, 3, 4, 6, 8, 12, 16], 0.5, readonly=True, enable_events=True, expand_x=True, key='-OUTPUT-RAM-')
     # Disk
     txtDiskGB = sg.Text('Disk (GB)', size=labeltextwidth, justification='right')
-    cboDiskGB = sg.Combo([8,12,16,24,32,48,64,96,128,192,256,384,512], 8, readonly=True, enable_events=True, expand_x=True, key='-OUTPUT-DISK-')
+    cboDiskGB = sg.Combo([8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512], 8, readonly=True, enable_events=True, expand_x=True, key='-OUTPUT-DISK-')
     # Mount Disk
     txtMountFolder = sg.Text('Mount Folder?', size=labeltextwidth, tooltip='Moungts folder to /multipass inside instance')
     inpMountFolder = sg.Input(expand_x=True, key='-INPMOUNTFOLDER-')
@@ -312,7 +316,7 @@ def new_window():
     txtGuiSize = sg.Text(f'GUI SIZE: {GUISize}')
     btnDecreaseGUISize = sg.Button('-', disabled=False, size=2, key='-DECREASEGUISIZE-')
     btnIncreaseGUISize = sg.Button('+', disabled=False, size=2, key='-INCREASEGUISIZE-')
-    outBox = sg.Output(size=(20,4), expand_x=True, visible=False, key='-OUTBOX-')
+    outBox = sg.Output(size=(20, 4), expand_x=True, visible=False, key='-OUTBOX-')
 
     # LAYOUT
     layout = [
@@ -437,11 +441,11 @@ def get_linux_terminal():
     global user_terminal
     user_terminal = 'gnome-terminal'
     # Naively try and see if the BASH command returns characters with the terminal path
-    if len(subprocess.check_output(f'whereis gnome-terminal', shell=True)) > 20:
+    if len(subprocess.check_output('whereis gnome-terminal', shell=True)) > 20:
         user_terminal = 'gnome-terminal'
-    elif len(subprocess.check_output(f'whereis konsole', shell=True)) > 20:
+    elif len(subprocess.check_output('whereis konsole', shell=True)) > 20:
         user_terminal = 'konsole'
-    elif len(subprocess.check_output(f'whereis xfce4-terminal', shell=True)) > 20:
+    elif len(subprocess.check_output('whereis xfce4-terminal', shell=True)) > 20:
         user_terminal = 'xfce4-terminal'
     else:
         user_terminal = 'gnome-terminal'
