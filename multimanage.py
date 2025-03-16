@@ -100,28 +100,58 @@ def UpdateInstanceTableValues():
     global columnsToRead
     global instancesHeadersForTable
     global instancesDataForTable
-    results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'info', '--format', 'csv', pipe_output=True, wait=True, stdin=subprocess.PIPE))
-    if results[0]:
-        df = pd.read_csv(io.StringIO(results[0]), usecols = columnsToRead)
-        # Massage the data a bit to remove NaNs
-        df['Memory total'] = df['Memory total'].replace(np.nan, 0)
-        df['Memory usage'] = df['Memory usage'].replace(np.nan, 0)
-        df['Disk total'] = df['Disk total'].replace(np.nan, 0)
-        df['Disk usage'] = df['Disk usage'].replace(np.nan, 0)
-        df['CPU(s)'] = df['CPU(s)'].replace(np.nan, 0)
-        df['Load'] = df['Load'].replace(np.nan, 0)
-        # Replace any others that we aren't calculating
+    
+    # Initialize to empty in case of failure
+    instancesHeadersForTable = []
+    instancesDataForTable = []
+    
+    try:
+        results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'info', '--format', 'csv', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+        if not results or not results[0]:
+            print("No results returned from multipass info command")
+            return
+            
+        try:
+            df = pd.read_csv(io.StringIO(results[0]), usecols=columnsToRead)
+        except Exception as e:
+            print(f"Error parsing CSV data: {e}")
+            sg.popup_error("Error reading instance data. Please check if multipass is working correctly.")
+            return
+            
+        # Safely handle NaN values
+        numeric_columns = ['Memory total', 'Memory usage', 'Disk total', 'Disk usage', 'CPU(s)', 'Load']
+        for col in numeric_columns:
+            if col in df.columns:
+                df[col] = df[col].fillna(0)
+        
+        # Replace any remaining NaN values
         df.fillna('', inplace=True)
-        # Make the numbers more human readable
-        df['Memory total'] = df['Memory total'].map(lambda x: f'{int((x/1024/1024))} MB')
-        df['Memory usage'] = df['Memory usage'].map(lambda x: f'{int((x/1024/1024))} MB')
-        df['Disk total'] = df['Disk total'].map(lambda x: f'{(x/1024/1024/1024):.2f} GB')
-        df['Disk usage'] = df['Disk usage'].map(lambda x: f'{(x/1024/1024/1024):.2f} GB')
-        df['CPU(s)'] = df['CPU(s)'].map(lambda x: int(x))
-        df['Load'] = df['Load'].map(lambda x: x)
-        data = df.values.tolist()
-        instancesHeadersForTable = list(df.columns.values)
-        instancesDataForTable    = list(data)
+        
+        try:
+            # Make the numbers more human readable
+            if 'Memory total' in df.columns:
+                df['Memory total'] = df['Memory total'].map(lambda x: f'{int((x/1024/1024))} MB' if x != '' else '0 MB')
+            if 'Memory usage' in df.columns:
+                df['Memory usage'] = df['Memory usage'].map(lambda x: f'{int((x/1024/1024))} MB' if x != '' else '0 MB')
+            if 'Disk total' in df.columns:
+                df['Disk total'] = df['Disk total'].map(lambda x: f'{(x/1024/1024/1024):.2f} GB' if x != '' else '0 GB')
+            if 'Disk usage' in df.columns:
+                df['Disk usage'] = df['Disk usage'].map(lambda x: f'{(x/1024/1024/1024):.2f} GB' if x != '' else '0 GB')
+            if 'CPU(s)' in df.columns:
+                df['CPU(s)'] = df['CPU(s)'].map(lambda x: int(x) if x != '' else 0)
+            if 'Load' in df.columns:
+                df['Load'] = df['Load'].map(lambda x: x if x != '' else '0')
+                
+            data = df.values.tolist()
+            instancesHeadersForTable = list(df.columns.values)
+            instancesDataForTable = list(data)
+        except Exception as e:
+            print(f"Error formatting instance data: {e}")
+            sg.popup_error("Error formatting instance data")
+            
+    except Exception as e:
+        print(f"Unexpected error in UpdateInstanceTableValues: {e}")
+        sg.popup_error("Error updating instance table. Please check if multipass is working correctly.")
 
 # I think this is brken just now, it only works on load, not on clicking...
 def UpdateInstanceTableValuesAndTable(key):
@@ -326,19 +356,36 @@ if not IsMultipassRunning():
 
 # Get the instance we can launch
 availableInstances = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'find', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+instanceTypes = []
 if availableInstances[0]:
-    jsonData = json.loads(availableInstances[0])
-    # Multipass 1.12 has a new blueprints section for no official images
-    if "blueprints" in jsonData:
-        instanceTypes = list(jsonData['images'].keys()) + list(jsonData['blueprints'].keys())
-    else:
-        instanceTypes = list(jsonData['images'].keys())
+    try:
+        jsonData = json.loads(availableInstances[0])
+        # Multipass 1.12 has a new blueprints section for no official images
+        if isinstance(jsonData, dict):
+            images_keys = list(jsonData.get('images', {}).keys())
+            blueprint_keys = list(jsonData.get('blueprints', {}).keys()) if 'blueprints' in jsonData else []
+            instanceTypes = images_keys + blueprint_keys
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON from multipass find: {e}")
+        sg.popup_error("Error getting available instances from multipass. Please check if multipass is working correctly.")
+    except Exception as e:
+        print(f"Unexpected error processing multipass find output: {e}")
+        sg.popup_error("Unexpected error processing multipass output")
 
 # Get the current instances multipass is managing
 results = sg.execute_get_results(sg.execute_command_subprocess(r'multipass', 'list', '--format', 'json', pipe_output=True, wait=True, stdin=subprocess.PIPE))
+instanceNames = []
 if results[0]:
-    jsonData = json.loads(results[0])
-    instanceNames = [i['name'] for i in jsonData['list']]
+    try:
+        jsonData = json.loads(results[0])
+        if isinstance(jsonData, dict) and 'list' in jsonData:
+            instanceNames = [i.get('name', '') for i in jsonData['list'] if isinstance(i, dict)]
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON from multipass list: {e}")
+        sg.popup_error("Error getting instance list from multipass. Please check if multipass is working correctly.")
+    except Exception as e:
+        print(f"Unexpected error processing multipass list output: {e}")
+        sg.popup_error("Unexpected error processing multipass output")
 
 # To save the local cloud init file we generate on a run
 working_folder = pathlib.Path().resolve()
