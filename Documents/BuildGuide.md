@@ -43,6 +43,28 @@ pip install pyinstaller
 pyinstaller -F -w -n multimanage multimanage.py
 ```
 
+### Mac
+
+# https://www.pythonguis.com/installation/install-tkinter-mac/
+
+```bash
+pip install python3-tk -y
+python3 -m venv ./venv/
+sudo chmod +x ./venv/bin/activate
+. ./venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade pip setuptools wheel
+pip3 install setuptools wheek --only-binary :all:
+pip3 install -r requirements-binary.txt  --only-binary :all:
+pip3 install -r requirements-build.txt
+python3 -m pip install --force-reinstall --extra-index-url https://PySimpleGUI.net/install PySimpleGUI
+python --version
+brew install python-tk@3.11
+python3 multimanage.py
+pip install pyinstaller
+pyinstaller -F -w -n multimanage multimanage.py
+```
+
 ### Windows
 
 ```powershell

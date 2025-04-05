@@ -4,6 +4,7 @@ Output/
 /.idea/
 venv-multimanage/
 venv/
+.venv/
 /cloud-init.yaml
 
 # Byte-compiled / optimized / DLL files

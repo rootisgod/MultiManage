@@ -3,7 +3,7 @@
 ######################################################################
 import PySimpleGUI as sg
 import pandas as pd
-import numpy as np
+# import numpy as np
 import pyperclip
 import yaml
 import webbrowser
@@ -340,7 +340,7 @@ def new_window():
         ### STATUS ###
         [
             [sg.HorizontalSeparator()],
-            [stsInstanceInfo, cbConsole, txtGuiSize, btnDecreaseGUISIZE, btnIncreaseGUISIZE],
+            [stsInstanceInfo, cbConsole, txtGuiSize, btnDecreaseGUISize, btnIncreaseGUISize],
             [outBox]
         ],
     ]
