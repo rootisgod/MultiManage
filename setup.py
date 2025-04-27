@@ -8,5 +8,5 @@ setup(
     license='GPL3',
     author='Iain BLack',
     author_email='blog@rootisgod.com',
-    description='A GUI and TUI Utility to manage Multipass Instances on Windows, Mac and Linux'
+    description='A WebUI Utility to manage Multipass Instances'
 )
