@@ -24,3 +24,15 @@ Example URL
 
 
 ## Next.js
+
+Install Node
+
+```bash
+brew install node
+npx create-next-app@latest multipass-web
+cd multipass-web
+npm install axios
+npm run dev
+```
+
+Go to (http://localhost:3000)[http://localhost:3000]

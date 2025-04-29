@@ -1,5 +1,6 @@
-fastapi
+fastapi[all]
 pytest
 httpx
 uvicorn
 pydantic
+python-multipart
