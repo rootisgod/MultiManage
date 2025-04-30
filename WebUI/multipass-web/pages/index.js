@@ -15,7 +15,7 @@ function InstanceList({ instances, onRefresh, isRefreshing }) {
     
     setActionInProgress(true);
     axios
-      .post("http://localhost:8000/start", { name: selectedInstance.name })
+      .post("http://localhost:8000/start_multipass_instance", { name: selectedInstance.name })
       .then(() => {
         // After successful start, refresh the list to show updated state
         onRefresh();
@@ -33,7 +33,7 @@ function InstanceList({ instances, onRefresh, isRefreshing }) {
     
     setActionInProgress(true);
     axios
-      .post("http://localhost:8000/stop", { name: selectedInstance.name })
+      .post("http://localhost:8000/stop_multipass_instance", { name: selectedInstance.name })
       .then(() => {
         // After successful stop, refresh the list to show updated state
         onRefresh();
