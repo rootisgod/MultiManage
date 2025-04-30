@@ -16,8 +16,12 @@ app.add_middleware(
 
 @app.get("/")
 def list_instances():
-    return multipass_functions.list_multipass_instances()
+    return multipass_functions.multipass_version()
 
 @app.get("/list")
 def list_instances():
     return multipass_functions.list_multipass_instances()
+
+@app.get("/version")
+def list_instances():
+    return multipass_functions.multipass_version()
