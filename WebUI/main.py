@@ -1,6 +1,7 @@
 import subprocess
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import multipass_functions
 
 app = FastAPI()
 
@@ -15,26 +16,8 @@ app.add_middleware(
 
 @app.get("/")
 def list_instances():
-    try:
-        result = subprocess.run(
-            ["multipass", "list"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return {"output": result.stdout}
-    except subprocess.CalledProcessError as e:
-        return {"error": e.stderr}
-    
+    return multipass_functions.list_multipass_instances()
+
 @app.get("/list")
 def list_instances():
-    try:
-        result = subprocess.run(
-            ["multipass", "list"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        return {"output": result.stdout}
-    except subprocess.CalledProcessError as e:
-        return {"error": e.stderr}
+    return multipass_functions.list_multipass_instances()
