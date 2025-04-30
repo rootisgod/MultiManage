@@ -28,6 +28,11 @@ tasks:
       - pkill -f 'uvicorn main:app'
       - sleep 1
 
+  install-nextjs-deps:
+    desc: Install Next.js Dependencies
+    cmds:
+      - cd multipass-web && npm install
+    silent: false
   start-nextjs:
     desc: Start the Next.js service
     cmds:
