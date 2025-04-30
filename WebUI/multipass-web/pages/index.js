@@ -2,10 +2,19 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 // Component for displaying instance list
-function InstanceList({ instances }) {
+function InstanceList({ instances, onRefresh, isRefreshing }) {
   return (
     <div className="section">
-      <h2>Multipass Instances</h2>
+      <div className="section-header">
+        <h2>Multipass Instances</h2>
+        <button 
+          onClick={onRefresh} 
+          disabled={isRefreshing} 
+          className="refresh-button"
+        >
+          {isRefreshing ? "Refreshing..." : "Refresh"}
+        </button>
+      </div>
       {instances.length > 0 ? (
         <table border="1" style={{ borderCollapse: "collapse" }}>
           <thead>
@@ -55,7 +64,24 @@ function VersionInfo({ version }) {
 export default function Home() {
   const [multipassVersion, setMultipassVersion] = useState({});
   const [multipassList, setMultipassList] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const isDebugMode = false; // Toggle to true for debugging, false for production
+
+  // Function to fetch instance list
+  const fetchInstanceList = () => {
+    setIsRefreshing(true);
+    axios
+      .get("http://localhost:8000/list")
+      .then((response) => {
+        setMultipassList(response.data.list);
+      })
+      .catch((error) => {
+        console.error("Error fetching multipass list:", error);
+      })
+      .finally(() => {
+        setIsRefreshing(false);
+      });
+  };
 
   useEffect(() => {
     if (isDebugMode) {
@@ -85,15 +111,8 @@ export default function Home() {
       setMultipassList(testInstanceListData.list);
       setMultipassVersion(testMultipassVersionData.version); 
     } else {
-      // Fetch data from the FastAPI endpoint
-      axios
-        .get("http://localhost:8000/list")
-        .then((response) => {
-          setMultipassList(response.data.list);
-        })
-        .catch((error) => {
-          console.error("Error fetching multipass list:", error);
-        });
+      // Fetch initial data
+      fetchInstanceList();
       
       // Fetch Multipass Version
       axios
@@ -116,7 +135,11 @@ export default function Home() {
       {/* Main content sections */}
       <div className="sections">
         <VersionInfo version={multipassVersion} />
-        <InstanceList instances={multipassList} />
+        <InstanceList 
+          instances={multipassList} 
+          onRefresh={fetchInstanceList}
+          isRefreshing={isRefreshing}
+        />
         
         {/* You can add more sections here */}
         {/* <OtherSection data={otherData} /> */}
@@ -138,6 +161,27 @@ export default function Home() {
           padding: 15px;
           border: 1px solid #eaeaea;
           border-radius: 5px;
+        }
+        .section-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
+        }
+        .refresh-button {
+          padding: 5px 12px;
+          background-color: #f5f5f5;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 14px;
+        }
+        .refresh-button:hover {
+          background-color: #e5e5e5;
+        }
+        .refresh-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
       `}</style>
     </div>
