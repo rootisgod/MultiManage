@@ -1,8 +1,59 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+// Component for displaying instance list
+function InstanceList({ instances }) {
+  return (
+    <div className="section">
+      <h2>Multipass Instances</h2>
+      {instances.length > 0 ? (
+        <table border="1" style={{ borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              <th style={{ padding: "8px" }}>Name</th>
+              <th style={{ padding: "8px" }}>Release</th>
+              <th style={{ padding: "8px" }}>State</th>
+              <th style={{ padding: "8px" }}>IPv4</th>
+            </tr>
+          </thead>
+          <tbody>
+            {instances.map((item, index) => (
+              <tr key={index}>
+                <td style={{ padding: "8px" }}>{item.name}</td>
+                <td style={{ padding: "8px" }}>{item.release}</td>
+                <td style={{ padding: "8px" }}>{item.state}</td>
+                <td style={{ padding: "8px" }}>
+                  {item.ipv4.length > 0 ? item.ipv4.join(", ") : "None"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p>No instances found.</p>
+      )}
+    </div>
+  );
+}
+
+// Component for displaying version info
+function VersionInfo({ version }) {
+  return (
+    <div className="section">
+      <h2>Multipass Version</h2>
+      <p>
+        multipass: {version.multipass || 'Unknown'}<br />
+        multipassd: {version.multipassd || 'Unknown'}
+      </p>
+    </div>
+  );
+}
+
+// You can add more components for other API sections here
+// For example: InstanceStats, NetworkInfo, etc.
+
 export default function Home() {
-  const [multipassVersion, setMultipassVersion] = useState([]);
+  const [multipassVersion, setMultipassVersion] = useState({});
   const [multipassList, setMultipassList] = useState([]);
   const isDebugMode = false; // Toggle to true for debugging, false for production
 
@@ -32,60 +83,63 @@ export default function Home() {
         }
       };
       setMultipassList(testInstanceListData.list);
-      setMultipassVersion(testMultipassVersionData); // Example version
+      setMultipassVersion(testMultipassVersionData.version); 
     } else {
       // Fetch data from the FastAPI endpoint
       axios
         .get("http://localhost:8000/list")
         .then((response) => {
-          // Assuming the response.data is the JSON object with a "list" key
           setMultipassList(response.data.list);
         })
         .catch((error) => {
           console.error("Error fetching multipass list:", error);
         });
+      
       // Fetch Multipass Version
       axios
-      .get("http://localhost:8000/version")
-      .then((response) => {
-        // Assuming the response.data is the JSON object with a "list" key
-        setMultipassVersion(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching multipass version:", error);
-      });
+        .get("http://localhost:8000/version")
+        .then((response) => {
+          setMultipassVersion(response.data.version || {});
+        })
+        .catch((error) => {
+          console.error("Error fetching multipass version:", error);
+        });
+        
+      // You can add more API calls here as needed
     }
   }, []);
 
   return (
-    <div>
-      <h1>Multipass Instances (Version: multipass {multipassVersion.multipass}, multipassd {multipassVersion.multipassd})</h1>
-      {multipassList.length > 0 ? (
-        <table border="1" style={{ borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={{ padding: "8px" }}>Name</th>
-              <th style={{ padding: "8px" }}>Release</th>
-              <th style={{ padding: "8px" }}>State</th>
-              <th style={{ padding: "8px" }}>IPv4</th>
-            </tr>
-          </thead>
-          <tbody>
-            {multipassList.map((item, index) => (
-              <tr key={index}>
-                <td style={{ padding: "8px" }}>{item.name}</td>
-                <td style={{ padding: "8px" }}>{item.release}</td>
-                <td style={{ padding: "8px" }}>{item.state}</td>
-                <td style={{ padding: "8px" }}>
-                  {item.ipv4.length > 0 ? item.ipv4.join(", ") : "None"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p>No instances found.</p>
-      )}
+    <div className="container">
+      <h1>Multipass Manager</h1>
+      
+      {/* Main content sections */}
+      <div className="sections">
+        <VersionInfo version={multipassVersion} />
+        <InstanceList instances={multipassList} />
+        
+        {/* You can add more sections here */}
+        {/* <OtherSection data={otherData} /> */}
+      </div>
+      
+      {/* Optional: Add some basic styling */}
+      <style jsx>{`
+        .container {
+          padding: 20px;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+        .sections {
+          display: flex;
+          flex-direction: column;
+          gap: 30px;
+        }
+        .section {
+          padding: 15px;
+          border: 1px solid #eaeaea;
+          border-radius: 5px;
+        }
+      `}</style>
     </div>
   );
 }
