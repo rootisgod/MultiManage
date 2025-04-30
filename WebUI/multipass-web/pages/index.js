@@ -6,7 +6,7 @@ export default function Home() {
 
   useEffect(() => {
     // Fetch data from the FastAPI endpoint
-    axios.get("http://localhost:8000/multipass/list")
+    axios.get("http://localhost:8000/list")
       .then((response) => {
         setMultipassList(response.data.output.split("\n")); // Assuming output is a newline-separated string
       })

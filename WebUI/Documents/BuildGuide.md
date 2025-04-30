@@ -12,15 +12,7 @@ Can't use multipass with docker easily so do python and npm seperately
 python3 -m venv venv
 . ./venv/bin/activate
 pip install -r requirements.txt
-# Run in Background
-uvicorn main:app --host 0.0.0.0 --port 8000 &
-# Kill it
-jobs
-kill %1
 ```
-
-Example URL
-(http://localhost:8000/multipass/list)[http://localhost:8000/multipass/list]
 
 
 ## Next.js
@@ -32,7 +24,13 @@ brew install node
 npx create-next-app@latest multipass-web
 cd multipass-web
 npm install axios
-npm run dev
 ```
 
-Go to (http://localhost:3000)[http://localhost:3000]
+
+## Running
+
+Ensure taskfile is installed
+
+```bash
+task start-all
+```

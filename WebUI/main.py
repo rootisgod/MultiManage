@@ -13,7 +13,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/multipass/list")
+@app.get("/")
+def list_instances():
+    try:
+        result = subprocess.run(
+            ["multipass", "list"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return {"output": result.stdout}
+    except subprocess.CalledProcessError as e:
+        return {"error": e.stderr}
+    
+@app.get("/list")
 def list_instances():
     try:
         result = subprocess.run(
