@@ -1,22 +1,87 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-// Component for displaying instance list
+// Component for displaying instance list with selection and start/stop functionality
 function InstanceList({ instances, onRefresh, isRefreshing }) {
+  const [selectedInstance, setSelectedInstance] = useState(null);
+  const [actionInProgress, setActionInProgress] = useState(false);
+
+  const handleRowClick = (instance) => {
+    setSelectedInstance(selectedInstance?.name === instance.name ? null : instance);
+  };
+
+  const startInstance = () => {
+    if (!selectedInstance) return;
+    
+    setActionInProgress(true);
+    axios
+      .post("http://localhost:8000/start", { name: selectedInstance.name })
+      .then(() => {
+        // After successful start, refresh the list to show updated state
+        onRefresh();
+      })
+      .catch((error) => {
+        console.error(`Error starting instance ${selectedInstance.name}:`, error);
+      })
+      .finally(() => {
+        setActionInProgress(false);
+      });
+  };
+
+  const stopInstance = () => {
+    if (!selectedInstance) return;
+    
+    setActionInProgress(true);
+    axios
+      .post("http://localhost:8000/stop", { name: selectedInstance.name })
+      .then(() => {
+        // After successful stop, refresh the list to show updated state
+        onRefresh();
+      })
+      .catch((error) => {
+        console.error(`Error stopping instance ${selectedInstance.name}:`, error);
+      })
+      .finally(() => {
+        setActionInProgress(false);
+      });
+  };
+
+  // Check if the selected instance can be started (if it's stopped)
+  const canStart = selectedInstance && selectedInstance.state.toLowerCase() !== "running";
+  
+  // Check if the selected instance can be stopped (if it's running)
+  const canStop = selectedInstance && selectedInstance.state.toLowerCase() === "running";
+  
   return (
     <div className="section">
       <div className="section-header">
         <h2>Multipass Instances</h2>
-        <button 
-          onClick={onRefresh} 
-          disabled={isRefreshing} 
-          className="refresh-button"
-        >
-          {isRefreshing ? "Refreshing..." : "Refresh"}
-        </button>
+        <div className="action-buttons">
+          <button 
+            onClick={startInstance} 
+            disabled={!canStart || actionInProgress || isRefreshing}
+            className="action-button start-button"
+          >
+            Start
+          </button>
+          <button 
+            onClick={stopInstance} 
+            disabled={!canStop || actionInProgress || isRefreshing}
+            className="action-button stop-button"
+          >
+            Stop
+          </button>
+          <button 
+            onClick={onRefresh} 
+            disabled={isRefreshing || actionInProgress} 
+            className="refresh-button"
+          >
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
       </div>
       {instances.length > 0 ? (
-        <table border="1" style={{ borderCollapse: "collapse" }}>
+        <table border="1" style={{ borderCollapse: "collapse" }} className="instance-table">
           <thead>
             <tr>
               <th style={{ padding: "8px" }}>Name</th>
@@ -27,7 +92,11 @@ function InstanceList({ instances, onRefresh, isRefreshing }) {
           </thead>
           <tbody>
             {instances.map((item, index) => (
-              <tr key={index}>
+              <tr 
+                key={index}
+                onClick={() => handleRowClick(item)}
+                className={selectedInstance?.name === item.name ? "selected-row" : ""}
+              >
                 <td style={{ padding: "8px" }}>{item.name}</td>
                 <td style={{ padding: "8px" }}>{item.release}</td>
                 <td style={{ padding: "8px" }}>{item.state}</td>
@@ -41,6 +110,7 @@ function InstanceList({ instances, onRefresh, isRefreshing }) {
       ) : (
         <p>No instances found.</p>
       )}
+      {actionInProgress && <div className="action-status">Processing request...</div>}
     </div>
   );
 }
@@ -92,7 +162,7 @@ export default function Home() {
             ipv4: [],
             name: "beloved-burro",
             release: "Ubuntu 24.04 LTS",
-            state: "Deleted",
+            state: "Stopped",
           },
           {
             ipv4: ["192.168.1.100", "192.168.1.101"],
@@ -123,8 +193,6 @@ export default function Home() {
         .catch((error) => {
           console.error("Error fetching multipass version:", error);
         });
-        
-      // You can add more API calls here as needed
     }
   }, []);
 
@@ -140,9 +208,6 @@ export default function Home() {
           onRefresh={fetchInstanceList}
           isRefreshing={isRefreshing}
         />
-        
-        {/* You can add more sections here */}
-        {/* <OtherSection data={otherData} /> */}
       </div>
       
       {/* Optional: Add some basic styling */}
@@ -168,7 +233,11 @@ export default function Home() {
           align-items: center;
           margin-bottom: 15px;
         }
-        .refresh-button {
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+        }
+        .refresh-button, .action-button {
           padding: 5px 12px;
           background-color: #f5f5f5;
           border: 1px solid #ddd;
@@ -176,12 +245,41 @@ export default function Home() {
           cursor: pointer;
           font-size: 14px;
         }
-        .refresh-button:hover {
+        .start-button {
+          background-color: #e6f7e6;
+          border-color: #c3e6cb;
+        }
+        .start-button:hover:not(:disabled) {
+          background-color: #d4edda;
+        }
+        .stop-button {
+          background-color: #f7e6e6;
+          border-color: #e6c3c3;
+        }
+        .stop-button:hover:not(:disabled) {
+          background-color: #edd4d4;
+        }
+        .refresh-button:hover:not(:disabled) {
           background-color: #e5e5e5;
         }
-        .refresh-button:disabled {
+        .refresh-button:disabled, .action-button:disabled {
           opacity: 0.6;
           cursor: not-allowed;
+        }
+        .instance-table tbody tr {
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+        .instance-table tbody tr:hover {
+          background-color: #f5f5f5;
+        }
+        .selected-row {
+          background-color: #e6f0ff !important;
+        }
+        .action-status {
+          margin-top: 10px;
+          font-style: italic;
+          color: #666;
         }
       `}</style>
     </div>
