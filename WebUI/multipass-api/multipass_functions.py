@@ -68,3 +68,17 @@ def start_multipass_instance(name):
     """
     result = run_multipass_command(f'multipass start {name}', expect_json=False)
     return result
+
+
+def get_multipass_instance_info(name):
+    """
+    Calls 'multipass info' and returns the output or error.
+    
+    Args:
+        name (str): The name of the instance to get info about.
+        
+    Returns:
+        dict: The result of the command execution.
+    """
+    result = run_multipass_command(f'multipass info {name} --format json')
+    return result

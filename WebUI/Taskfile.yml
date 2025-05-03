@@ -9,7 +9,7 @@ tasks:
   info:
     desc: How to start
     cmds:
-      - echo ". ./venv/bin/activate"
+      - echo ". ./multipass-api/venv/bin/activate"
     silent: false
   show-links:
     desc: Links to the services
@@ -49,8 +49,8 @@ tasks:
     desc: Clean Logs
     cmds:
       - sleep 1
-      - rm _fastapi.log
-      - rm _fastapi.pid
+      - rm multipass-api/_fastapi.log
+      - rm multipass-api/_fastapi.pid
       - rm multipass-web/_nextjs.log
       - rm multipass-web/_nextjs.pid
       - rm -rf multipass-web/.next

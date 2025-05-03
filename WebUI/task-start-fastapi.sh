@@ -1,4 +1,5 @@
 #!/bin/bash
+cd multipass-api/
 source venv/bin/activate
 nohup uvicorn main:app --host 0.0.0.0 --port 8000 --reload >> _fastapi.log 2>&1 &
 echo $! > _fastapi.pid
