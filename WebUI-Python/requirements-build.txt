@@ -1,0 +1,13 @@
+# Flask Web UI requirements
+Flask==2.3.3
+requests==2.31.0
+
+# FastAPI backend requirements
+fastapi[all]
+uvicorn
+pydantic
+python-multipart
+pillow
+
+# Build requirements
+pyinstaller==6.0.0
