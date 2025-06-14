@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = 'multipass_manager_secret_key'  # Needed for flash messages
 
 # FastAPI backend URL
-API_URL = 'http://localhost:8000'
+API_URL = 'http://localhost:8001'
 
 @app.route('/')
 def index():

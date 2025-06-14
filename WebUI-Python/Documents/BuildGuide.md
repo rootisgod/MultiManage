@@ -14,18 +14,6 @@ python3 -m venv venv
 pip install -r requirements.txt
 ```
 
-## Next.js
-
-Install Node and then do this. Don't rerun this, first time thing so I know what I did!
-
-```bash
-brew install node
-npx create-next-app@latest multipass-web 
-cd multipass-web
-npm install axios
-```
-
-
 ## Running
 
 Ensure taskfile is installed

@@ -1,0 +1,13 @@
+# WebUI-Python requirements file
+
+# FastAPI
+fastapi[all]
+pytest
+httpx
+uvicorn
+pydantic
+python-multipart
+
+# Flask
+Flask==2.3.3
+requests==2.31.0

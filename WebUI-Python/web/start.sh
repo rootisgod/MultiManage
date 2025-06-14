@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "---------- Starting Flask server ----------"
+
 # Stop any existing Flask web server
 PID_FILE="_flask.pid"
 LOG_FILE="_flask.log"
@@ -8,16 +10,6 @@ if [ -f "$PID_FILE" ]; then
     echo "Stopping existing Flask server..."
     kill -9 $(cat "$PID_FILE") 2>/dev/null || true
     rm "$PID_FILE"
-fi
-
-# Install dependencies if needed
-if [ ! -d "venv" ]; then
-    echo "Setting up virtual environment..."
-    python -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-else
-    source venv/bin/activate
 fi
 
 # Start Flask server

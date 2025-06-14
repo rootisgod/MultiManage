@@ -1,95 +1,47 @@
 version: '3'
 
-# Basically do the below (tested on Mac only)
-# task start-al  start-all:
-    desc: Start both FastAPI and Next.js services
+tasks:
+  start:
+    desc: Start both FastAPI and Flask services
     deps:
       - start-api
-      - start-nextjs
+      - start-flask
       - show-links
 
-  stop-all:
-    desc: Stop both FastAPI and Next.js services
+  stop:
+    desc: Stop both FastAPI and Flask services
     deps:
       - stop-api
-      - stop-nextjs
-      - clean-all
+      - stop-flask
+      - clean
 
-  restart-all:
-    desc: Restart both FastAPI and Next.js services
+  restart:
+    desc: Restart both FastAPI and Flask services
     deps:
-      - stop-all
-      - start-all
-      
-  start-with-flask:
-    desc: Start FastAPI and Flask UI
-    cmds:
-      - task: start-api
-      - task: start-flask
-      - task: show-links
-      
-  stop-with-flask:
-    desc: Stop FastAPI and Flask UI
-    cmds:
-      - task: stop-api
-      - task: stop-flask
-      - task: clean-all task restart-all
+      - stop
+      - start
 
-tasks:
   info:
     desc: How to start
     cmds:
-      - echo ". ./api/venv/bin/activate"
+      - echo ". ./venv/bin/activate"
     silent: false
   show-links:
     desc: Links to the services
     cmds:
-      - echo "FastAPI - http://localhost:8001"
-      - echo "Next.js - http://localhost:3000"
+      - echo "FastAPI  - http://localhost:8001"
       - echo "Flask UI - http://localhost:5000"
 
   start-api:
     desc: Start the FastAPI service
     cmds:
-      - ./task-start-fastapi.sh
-      - echo "FastAPI - http://localhost:8001"
+      - cd api && ./start.sh
     silent: false
   stop-api:
     desc: Stop the FastAPI service
     cmds:
       - pkill -f 'uvicorn main:app'
       - sleep 1
-
-  install-nextjs-deps:
-    desc: Install Next.js Dependencies
-    cmds:
-      - cd web-nextjs && npm install
-    silent: false
-  start-nextjs:
-    desc: Start the Next.js service
-    cmds:
-      - ./task-start-nextjs.sh
-    silent: false
-  stop-nextjs:
-    desc: Start the Next.js service
-    cmds:
-      - pkill -f 'npm run dev'
-      - sleep 1
-    silent: false
-
-  clean-all:
-    desc: Clean Logs
-    cmds:
-      - sleep 1
-      - rm api/_fastapi.log || true
-      - rm api/_fastapi.pid || true
-      - rm web-nextjs/_nextjs.log || true
-      - rm web-nextjs/_nextjs.pid || true
-      - rm web/_flask.log || true
-      - rm web/_flask.pid || true
-      - rm -rf web-nextjs/.next || true
-    silent: false
-    ignore_error: true
 
   start-flask:
     desc: Start the Flask Web UI
@@ -103,22 +55,13 @@ tasks:
       - sleep 1
     silent: false
 
-  start:
-    desc: Start both FastAPI and Next.js services
-    deps:
-      - start-api
-      - start-nextjs
-      - show-links
-
-  stop-all:
-    desc: Stop both FastAPI and Next.js services
-    deps:
-      - stop-api
-      - stop-nextjs
-      - clean-all
-
-  restart:
-    desc: Restart both FastAPI and Next.js services
-    deps:
-      - stop-all
-      - start-all
+  clean:
+    desc: Clean Logs
+    cmds:
+      - sleep 1
+      - rm api/_fastapi.log || true
+      - rm api/_fastapi.pid || true
+      - rm web/_flask.log || true
+      - rm web/_flask.pid || true
+    silent: false
+    ignore_error: true
