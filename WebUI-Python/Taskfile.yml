@@ -26,12 +26,15 @@ tasks:
     cmds:
       - echo ". ./venv/bin/activate"
     silent: false
+
   show-links:
     desc: Links to the services
     cmds:
+      - echo "-------------------------------------------------"
       - echo "FastAPI  - http://localhost:8001"
       - echo "Flask UI - http://localhost:5000"
 
+  # FastAPI service
   start-api:
     desc: Start the FastAPI service
     cmds:
@@ -43,6 +46,7 @@ tasks:
       - pkill -f 'uvicorn main:app'
       - sleep 1
 
+  # Flask Web UI
   start-flask:
     desc: Start the Flask Web UI
     cmds:
