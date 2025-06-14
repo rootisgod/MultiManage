@@ -9,20 +9,21 @@ tasks:
   info:
     desc: How to start
     cmds:
-      - echo ". ./multipass-api/venv/bin/activate"
+      - echo ". ./api/venv/bin/activate"
     silent: false
   show-links:
     desc: Links to the services
     cmds:
-      - echo "FastAPI - http://localhost:8000"
+      - echo "FastAPI - http://localhost:8001"
       - echo "Next.js - http://localhost:3000"
 
-  start-fastapi:
+  start-api:
     desc: Start the FastAPI service
     cmds:
       - ./task-start-fastapi.sh
+      - echo "FastAPI - http://localhost:8001"
     silent: false
-  stop-fastapi:
+  stop-api:
     desc: Stop the FastAPI service
     cmds:
       - pkill -f 'uvicorn main:app'
@@ -31,7 +32,7 @@ tasks:
   install-nextjs-deps:
     desc: Install Next.js Dependencies
     cmds:
-      - cd multipass-web && npm install
+      - cd web-nextjs && npm install
     silent: false
   start-nextjs:
     desc: Start the Next.js service
@@ -49,29 +50,29 @@ tasks:
     desc: Clean Logs
     cmds:
       - sleep 1
-      - rm multipass-api/_fastapi.log
-      - rm multipass-api/_fastapi.pid
-      - rm multipass-web/_nextjs.log
-      - rm multipass-web/_nextjs.pid
-      - rm -rf multipass-web/.next
+      - rm api/_fastapi.log
+      - rm api/_fastapi.pid
+      - rm web-nextjs/_nextjs.log
+      - rm web-nextjs/_nextjs.pid
+      - rm -rf web-nextjs/.next
     silent: false
     ignore_error: true
 
-  start-all:
+  start:
     desc: Start both FastAPI and Next.js services
     deps:
-      - start-fastapi
+      - start-api
       - start-nextjs
       - show-links
 
   stop-all:
     desc: Stop both FastAPI and Next.js services
     deps:
-      - stop-fastapi
+      - stop-api
       - stop-nextjs
       - clean-all
 
-  restart-all:
+  restart:
     desc: Restart both FastAPI and Next.js services
     deps:
       - stop-all
