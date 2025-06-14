@@ -17,6 +17,6 @@ echo "Starting Flask server..."
 nohup python app.py > "$LOG_FILE" 2>&1 &
 echo $! > "$PID_FILE"
 
-echo "Flask server started on http://localhost:5000"
+echo "Flask server started on http://127.0.0.1:5000"
 echo "Log file: $LOG_FILE"
 echo "PID file: $PID_FILE"

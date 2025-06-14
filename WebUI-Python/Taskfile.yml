@@ -31,8 +31,8 @@ tasks:
     desc: Links to the services
     cmds:
       - echo "-------------------------------------------------"
-      - echo "FastAPI  - http://localhost:8001"
-      - echo "Flask UI - http://localhost:5000"
+      - echo "FastAPI  - http://127.0.0.1:8001"
+      - echo "Flask UI - http://127.0.0.1:5000"
 
   # FastAPI service
   start-api:
