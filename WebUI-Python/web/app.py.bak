@@ -1,5 +1,17 @@
-from flask import Flask, render_template, redirect, url_for, request, flash
-import requests
+from flask import Flask, render_template, redirect, url_for, request, fl@app.route('/api/info/<n>')
+def instance_info_api(name):
+    """API endpoint to get instance info for popup"""
+    try:
+        response = requests.get(f"{API_URL}/info/{name}")
+        info_data = response.json()
+        
+        # Check if we have the expected data structure
+        if not info_data.get('info') or name not in info_data.get('info', {}):
+            return {"error": f"No information available for instance {name}"}
+            
+        return info_data
+    except Exception as e:
+        return {"error": str(e)}t requests
 import json
 
 app = Flask(__name__)
@@ -7,7 +19,6 @@ app.secret_key = 'multipass_manager_secret_key'  # Needed for flash messages
 
 # FastAPI backend URL
 API_URL = 'http://127.0.0.1:8001'
-
 
 @app.route('/')
 def index():
@@ -31,7 +42,6 @@ def index():
                           version=version_data, 
                           instances=instances_data)
 
-
 @app.route('/start/<name>', methods=['POST'])
 def start_instance(name):
     """Start a multipass instance"""
@@ -45,7 +55,6 @@ def start_instance(name):
         flash(f"Error starting instance {name}: {str(e)}", "error")
     
     return redirect(url_for('index'))
-
 
 @app.route('/stop/<name>', methods=['POST'])
 def stop_instance(name):
@@ -61,7 +70,6 @@ def stop_instance(name):
     
     return redirect(url_for('index'))
 
-
 @app.route('/info/<name>')
 def instance_info(name):
     """Show detailed information about a multipass instance"""
@@ -74,22 +82,15 @@ def instance_info(name):
 
     return render_template('info.html', name=name, info=info_data)
 
-
 @app.route('/api/info/<name>')
 def instance_info_api(name):
     """API endpoint to get instance info for popup"""
     try:
         response = requests.get(f"{API_URL}/info/{name}")
         info_data = response.json()
-        
-        # Check if we have the expected data structure
-        if not info_data.get('info') or name not in info_data.get('info', {}):
-            return {"error": f"No information available for instance {name}"}
-            
         return info_data
     except Exception as e:
         return {"error": str(e)}
-
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

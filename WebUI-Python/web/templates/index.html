@@ -114,9 +114,54 @@
         .info-link {
             color: #0366d6;
             text-decoration: none;
+            cursor: pointer;
+            position: relative;
         }
         .info-link:hover {
             text-decoration: underline;
+        }
+        /* Instance info popup styles */
+        .info-popup {
+            display: none;
+            position: absolute;
+            width: 400px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            left: 100%;
+            top: -100px;
+            font-size: 14px;
+            text-align: left;
+        }
+        .info-popup h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .info-popup-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .info-popup-item {
+            margin-bottom: 10px;
+        }
+        .info-popup-label {
+            font-weight: bold;
+            font-size: 12px;
+            color: #555;
+        }
+        .info-popup-value {
+            background-color: #f9f9f9;
+            padding: 4px;
+            border-radius: 2px;
+            font-size: 13px;
+            word-break: break-all;
         }
         /* Spinner styles */
         .spinner-overlay {
@@ -205,9 +250,17 @@
                         {% for instance in instances %}
                             <tr>
                                 <td>
-                                    <a href="{{ url_for('instance_info', name=instance.name) }}" class="info-link">
+                                    <span class="info-link" data-instance-name="{{ instance.name }}">
                                         {{ instance.name }}
-                                    </a>
+                                        <div class="info-popup" id="popup-{{ instance.name }}">
+                                            <h3>Instance: {{ instance.name }}</h3>
+                                            <div class="info-popup-grid" id="info-content-{{ instance.name }}">
+                                                <div class="info-popup-item">
+                                                    <div class="info-popup-label">Loading...</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </span>
                                 </td>
                                 <td>{{ instance.release }}</td>
                                 <td>{{ instance.state }}</td>
@@ -256,6 +309,72 @@
             const refreshForm = document.getElementById('refreshForm');
             const spinnerOverlay = document.getElementById('spinnerOverlay');
             const spinnerText = document.getElementById('spinnerText');
+            const infoLinks = document.querySelectorAll('.info-link');
+            
+            // Instance hover info functionality
+            infoLinks.forEach(link => {
+                const instanceName = link.getAttribute('data-instance-name');
+                const popup = document.getElementById(`popup-${instanceName}`);
+                const infoContent = document.getElementById(`info-content-${instanceName}`);
+                let infoLoaded = false;
+                
+                // Show popup on hover
+                link.addEventListener('mouseenter', function() {
+                    popup.style.display = 'block';
+                    
+                    // Only load the data once
+                    if (!infoLoaded) {
+                        // Fetch instance info data
+                        fetch(`/api/info/${instanceName}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    infoContent.innerHTML = `<div class="info-popup-item"><div class="info-popup-label">Error</div><div class="info-popup-value">${data.error}</div></div>`;
+                                    return;
+                                }
+                                
+                                // Format instance info data
+                                let htmlContent = '';
+                                
+                                // The structure is different than expected. It has 'info': {'instance_name': {details}}
+                                const instanceData = data.info && data.info[instanceName] ? data.info[instanceName] : {};
+                                
+                                // Determine key info to display
+                                const keyInfo = {
+                                    'State': instanceData.state || 'Unknown',
+                                    'IPv4': instanceData.ipv4 ? instanceData.ipv4.join(', ') : 'None',
+                                    'Release': instanceData.release || 'Unknown',
+                                    'Image hash': instanceData.image_hash || 'Unknown',
+                                    'CPU(s)': instanceData.cpu_count || 'Unknown',
+                                    'Memory': instanceData.memory ? `${Math.round(instanceData.memory.total / 1024 / 1024)}MB` : 'Unknown',
+                                    'Disk': instanceData.disks ? `${Math.round(parseInt(Object.values(instanceData.disks)[0].total) / 1024 / 1024)}MB` : 'Unknown',
+                                    'Mounts': instanceData.mounts ? Object.keys(instanceData.mounts).length : 'None'
+                                };
+                                
+                                // Create HTML for each info item
+                                for (const [key, value] of Object.entries(keyInfo)) {
+                                    htmlContent += `
+                                        <div class="info-popup-item">
+                                            <div class="info-popup-label">${key}</div>
+                                            <div class="info-popup-value">${value}</div>
+                                        </div>
+                                    `;
+                                }
+                                
+                                infoContent.innerHTML = htmlContent;
+                                infoLoaded = true;
+                            })
+                            .catch(error => {
+                                infoContent.innerHTML = `<div class="info-popup-item"><div class="info-popup-label">Error</div><div class="info-popup-value">${error.message}</div></div>`;
+                            });
+                    }
+                });
+                
+                // Hide popup when mouse leaves
+                link.addEventListener('mouseleave', function() {
+                    popup.style.display = 'none';
+                });
+            });
 
             // Handle instance actions (start/stop)
             actionForms.forEach(form => {
