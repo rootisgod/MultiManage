@@ -6,12 +6,14 @@ from pydantic import BaseModel
 from routers.info import router as info_router
 from routers.list import router as list_router
 from routers.version import router as version_router
+from routers.actions import router as actions_router
 
 # Main App
 app = FastAPI()
 app.include_router(info_router)
 app.include_router(list_router)
 app.include_router(version_router)
+app.include_router(actions_router)
 
 # Add CORS middleware
 app.add_middleware(

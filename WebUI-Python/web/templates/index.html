@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multipass Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #eaeaea;
+            border-radius: 5px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        tbody tr {
+            cursor: pointer;
+        }
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+        .selected-row {
+            background-color: #e6f0ff !important;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        button {
+            padding: 6px 12px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button.refresh {
+            background-color: #f5f5f5;
+        }
+        button.start {
+            background-color: #e6f7e6;
+            border-color: #c3e6cb;
+        }
+        button.start:hover:not(:disabled) {
+            background-color: #d4edda;
+        }
+        button.stop {
+            background-color: #f7e6e6;
+            border-color: #e6c3c3;
+        }
+        button.stop:hover:not(:disabled) {
+            background-color: #edd4d4;
+        }
+        button:hover:not(:disabled) {
+            opacity: 0.8;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        .flash-message {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .flash-message.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .flash-message.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info-link {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        .info-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multipass Manager</h1>
+
+        {% if get_flashed_messages() %}
+        <div class="flash-messages">
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+                <div class="flash-message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Version Info Section -->
+        <div class="section">
+            <h2>Multipass Version</h2>
+            <p>
+                multipass: {{ version.get('multipass', 'Unknown') }}<br>
+                multipassd: {{ version.get('multipassd', 'Unknown') }}
+            </p>
+        </div>
+
+        <!-- Instances List Section -->
+        <div class="section">
+            <div class="section-header">
+                <h2>Multipass Instances</h2>
+                <div class="action-buttons">
+                    <form action="{{ url_for('index') }}" method="get">
+                        <button type="submit" class="refresh">Refresh</button>
+                    </form>
+                </div>
+            </div>
+
+            {% if instances %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Release</th>
+                            <th>State</th>
+                            <th>IPv4</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for instance in instances %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('instance_info', name=instance.name) }}" class="info-link">
+                                        {{ instance.name }}
+                                    </a>
+                                </td>
+                                <td>{{ instance.release }}</td>
+                                <td>{{ instance.state }}</td>
+                                <td>{{ instance.ipv4|join(', ') if instance.ipv4 else 'None' }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        {% if instance.state.lower() != 'running' %}
+                                            <form action="{{ url_for('start_instance', name=instance.name) }}" method="post">
+                                                <button type="submit" class="start">Start</button>
+                                            </form>
+                                        {% endif %}
+                                        
+                                        {% if instance.state.lower() == 'running' %}
+                                            <form action="{{ url_for('stop_instance', name=instance.name) }}" method="post">
+                                                <button type="submit" class="stop">Stop</button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No instances found.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(message => {
+                message.style.opacity = '0';
+                message.style.transition = 'opacity 1s';
+                setTimeout(() => {
+                    message.style.display = 'none';
+                }, 1000);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>
