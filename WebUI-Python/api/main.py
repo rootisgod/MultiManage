@@ -18,7 +18,7 @@ app.include_router(actions_router)
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace "*" with specific origins like ["http://localhost:3000"] for better security
+    allow_origins=["*"],  # Replace "*" with specific origins like ["http://127.0.0.1:3000"] for better security
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
