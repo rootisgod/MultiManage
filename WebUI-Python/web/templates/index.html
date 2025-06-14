@@ -120,6 +120,12 @@
         .info-link:hover {
             text-decoration: underline;
         }
+        .info-link.has-popup::after {
+            content: "ℹ️";
+            font-size: 12px;
+            margin-left: 5px;
+            vertical-align: super;
+        }
         /* Instance info popup styles */
         .info-popup {
             display: none;
@@ -250,7 +256,10 @@
                         {% for instance in instances %}
                             <tr>
                                 <td>
-                                    <span class="info-link" data-instance-name="{{ instance.name }}">
+                                    <span class="info-link" 
+                                          data-instance-name="{{ instance.name }}" 
+                                          data-instance-state="{{ instance.state }}"
+                                          title="{% if instance.state.lower() == 'running' %}Hover for instance details{% else %}Instance must be running to show details{% endif %}">
                                         {{ instance.name }}
                                         <div class="info-popup" id="popup-{{ instance.name }}">
                                             <h3>Instance: {{ instance.name }}</h3>
@@ -314,12 +323,23 @@
             // Instance hover info functionality
             infoLinks.forEach(link => {
                 const instanceName = link.getAttribute('data-instance-name');
+                const instanceState = link.getAttribute('data-instance-state') || '';
                 const popup = document.getElementById(`popup-${instanceName}`);
                 const infoContent = document.getElementById(`info-content-${instanceName}`);
                 let infoLoaded = false;
                 
-                // Show popup on hover
+                // Add info indicator for running instances
+                if (instanceState.toLowerCase() === 'running') {
+                    link.classList.add('has-popup');
+                }
+                
+                // Show popup on hover only for running instances
                 link.addEventListener('mouseenter', function() {
+                    // Only show popup for running instances
+                    if (instanceState.toLowerCase() !== 'running') {
+                        return; // Exit early if instance is not running
+                    }
+                    
                     popup.style.display = 'block';
                     
                     // Only load the data once
