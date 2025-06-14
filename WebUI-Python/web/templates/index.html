@@ -118,11 +118,49 @@
         .info-link:hover {
             text-decoration: underline;
         }
+        /* Spinner styles */
+        .spinner-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .spinner-text {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Multipass Manager</h1>
+
+        <!-- Spinner Overlay -->
+        <div class="spinner-overlay" id="spinnerOverlay">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <div class="spinner-text" id="spinnerText">Processing...</div>
+            </div>
+        </div>
 
         {% if get_flashed_messages() %}
         <div class="flash-messages">
@@ -146,7 +184,7 @@
             <div class="section-header">
                 <h2>Multipass Instances</h2>
                 <div class="action-buttons">
-                    <form action="{{ url_for('index') }}" method="get">
+                    <form action="{{ url_for('index') }}" method="get" id="refreshForm">
                         <button type="submit" class="refresh">Refresh</button>
                     </form>
                 </div>
@@ -177,13 +215,13 @@
                                 <td>
                                     <div class="action-buttons">
                                         {% if instance.state.lower() != 'running' %}
-                                            <form action="{{ url_for('start_instance', name=instance.name) }}" method="post">
+                                            <form action="{{ url_for('start_instance', name=instance.name) }}" method="post" class="instance-action-form" data-action="start" data-instance="{{ instance.name }}">
                                                 <button type="submit" class="start">Start</button>
                                             </form>
                                         {% endif %}
                                         
                                         {% if instance.state.lower() == 'running' %}
-                                            <form action="{{ url_for('stop_instance', name=instance.name) }}" method="post">
+                                            <form action="{{ url_for('stop_instance', name=instance.name) }}" method="post" class="instance-action-form" data-action="stop" data-instance="{{ instance.name }}">
                                                 <button type="submit" class="stop">Stop</button>
                                             </form>
                                         {% endif %}
@@ -211,6 +249,36 @@
                 }, 1000);
             });
         }, 5000);
+
+        // Handle instance action forms and show spinner
+        document.addEventListener('DOMContentLoaded', function() {
+            const actionForms = document.querySelectorAll('.instance-action-form');
+            const refreshForm = document.getElementById('refreshForm');
+            const spinnerOverlay = document.getElementById('spinnerOverlay');
+            const spinnerText = document.getElementById('spinnerText');
+
+            // Handle instance actions (start/stop)
+            actionForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const action = this.getAttribute('data-action');
+                    const instanceName = this.getAttribute('data-instance');
+                    
+                    // Set appropriate message
+                    spinnerText.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)}ing instance ${instanceName}...`;
+                    
+                    // Show spinner
+                    spinnerOverlay.style.display = 'flex';
+                });
+            });
+            
+            // Handle refresh action
+            if (refreshForm) {
+                refreshForm.addEventListener('submit', function(e) {
+                    spinnerText.textContent = 'Refreshing instances...';
+                    spinnerOverlay.style.display = 'flex';
+                });
+            }
+        });
     </script>
 </body>
 </html>
