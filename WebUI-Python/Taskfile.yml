@@ -1,0 +1,71 @@
+version: '3'
+
+tasks:
+  start:
+    desc: Start both FastAPI and Flask services
+    deps:
+      - start-api
+      - start-flask
+      - show-links
+
+  stop:
+    desc: Stop both FastAPI and Flask services
+    deps:
+      - stop-api
+      - stop-flask
+      - clean
+
+  restart:
+    desc: Restart both FastAPI and Flask services
+    deps:
+      - stop
+      - start
+
+  info:
+    desc: How to start
+    cmds:
+      - echo ". ./venv/bin/activate"
+    silent: false
+
+  show-links:
+    desc: Links to the services
+    cmds:
+      - echo "-------------------------------------------------"
+      - echo "FastAPI  - http://127.0.0.1:8001"
+      - echo "Flask UI - http://127.0.0.1:5000"
+
+  # FastAPI service
+  start-api:
+    desc: Start the FastAPI service
+    cmds:
+      - cd api && ./start.sh
+    silent: false
+  stop-api:
+    desc: Stop the FastAPI service
+    cmds:
+      - pkill -f 'uvicorn main:app'
+      - sleep 1
+
+  # Flask Web UI
+  start-flask:
+    desc: Start the Flask Web UI
+    cmds:
+      - cd web && ./start.sh
+    silent: false
+  stop-flask:
+    desc: Stop the Flask Web UI
+    cmds:
+      - pkill -f 'python app.py' || true
+      - sleep 1
+    silent: false
+
+  clean:
+    desc: Clean Logs
+    cmds:
+      - sleep 1
+      - rm api/_fastapi.log || true
+      - rm api/_fastapi.pid || true
+      - rm web/_flask.log || true
+      - rm web/_flask.pid || true
+    silent: false
+    ignore_error: true
